@@ -6,7 +6,7 @@ erDiagram
     USERS {
         uuid id PK
         string auth_provider "google, email"
-        string auth_subject UK "provider user id"
+        string auth_subject UK "provider user id, unique with auth_provider"
         string display_name "3-20 chars"
         string friend_code UK
         string timezone "IANA, for local day"
