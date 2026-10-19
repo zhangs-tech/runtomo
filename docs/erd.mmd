@@ -1,0 +1,260 @@
+%% RunTomo MVP ERD (derived from docs/usecases)
+%% Not stored as tables: mood (UC-10, computed), leaderboards (UC-16, from DAILY_STATS),
+%% bond level thresholds and reward tiers (server config).
+erDiagram
+    %% ---------- Accounts & social ----------
+    USERS {
+        uuid id PK
+        string auth_provider "google, email"
+        string auth_subject UK "provider user id"
+        string display_name "3-20 chars"
+        string friend_code UK
+        string timezone "IANA, for local day"
+        bigint coin_balance "cache of COIN_TRANSACTIONS"
+        uuid equipped_tomo_id FK "exactly one (UC-11)"
+        int current_streak
+        int longest_streak
+        int rest_days "max 2"
+        date last_active_date
+        timestamp created_at
+    }
+
+    FRIEND_REQUESTS {
+        uuid id PK
+        uuid from_user_id FK
+        uuid to_user_id FK
+        string status "pending, accepted, declined"
+        timestamp created_at
+    }
+
+    FRIENDSHIPS {
+        uuid user_a_id PK, FK "user_a_id < user_b_id"
+        uuid user_b_id PK, FK
+        timestamp created_at
+    }
+
+    %% ---------- Tomos ----------
+    SPECIES {
+        uuid id PK
+        string code UK
+        string name
+        string rarity "common..legendary"
+        bool is_starter
+        bool in_gacha_pool
+    }
+
+    SKINS {
+        uuid id PK
+        uuid species_id FK
+        string name
+        string rarity
+        bool is_default "MVP: default only"
+    }
+
+    USER_TOMOS {
+        uuid id PK
+        uuid user_id FK
+        uuid species_id FK
+        uuid skin_id FK
+        string nickname "1-16 chars"
+        int bond_points
+        int bond_level "1-10"
+        bigint distance_together_m
+        date birthday "date obtained"
+    }
+
+    %% ---------- Activities ----------
+    ACTIVITIES {
+        uuid id PK
+        uuid client_id UK "idempotent upload"
+        uuid user_id FK
+        uuid user_tomo_id FK "equipped at start"
+        string type "walk, run"
+        timestamp started_at
+        timestamp ended_at
+        int moving_duration_s "excludes pauses"
+        int recorded_distance_m
+        int verified_distance_m
+        int steps
+        string validation_status "pending, valid, partially_valid, flagged"
+        date local_date
+        timestamp created_at
+    }
+
+    ACTIVITY_POINTS {
+        uuid activity_id PK, FK
+        int seq PK
+        timestamp recorded_at
+        float lat
+        float lng
+        float accuracy_m
+        float speed_mps
+        int step_count "cumulative sensor value"
+        bool is_valid "set by validation"
+    }
+
+    ACTIVITY_REWARDS {
+        uuid activity_id PK, FK "one payout per activity"
+        int coins
+        int bond_points
+        timestamp created_at
+    }
+
+    DAILY_STATS {
+        uuid user_id PK, FK
+        date local_date PK
+        int recorded_distance_m
+        int verified_distance_m "drives coin tiers, streak, leaderboard"
+        int steps
+        int activity_coins "for daily cap"
+        bool is_active_day
+        bool rest_day_used
+    }
+
+    %% ---------- Currency ----------
+    COIN_TRANSACTIONS {
+        uuid id PK
+        uuid user_id FK
+        int amount "+ earn / - spend"
+        string reason "activity, quest, achievement, summon, duplicate, food"
+        uuid ref_id "id of source row"
+        timestamp created_at
+    }
+
+    %% ---------- Gacha ----------
+    BANNERS {
+        uuid id PK
+        string name
+        int cost_coins
+        int pity_threshold "20"
+        timestamp starts_at
+        timestamp ends_at "null = standard"
+    }
+
+    BANNER_RATES {
+        uuid banner_id PK, FK
+        string rarity PK
+        float rate
+    }
+
+    BANNER_SPECIES {
+        uuid banner_id PK, FK
+        uuid species_id PK, FK
+    }
+
+    USER_PITY {
+        uuid user_id PK, FK
+        uuid banner_id PK, FK
+        int pulls_since_epic
+    }
+
+    SUMMONS {
+        uuid id PK
+        uuid user_id FK
+        uuid banner_id FK
+        uuid species_id FK
+        string rarity
+        int cost_coins
+        bool was_pity
+        bool was_duplicate
+        uuid user_tomo_id FK "null if duplicate"
+        timestamp created_at
+    }
+
+    %% ---------- Quests & achievements ----------
+    QUEST_DEFINITIONS {
+        uuid id PK
+        string code UK
+        string title
+        string metric "verified_distance_m, steps"
+        int target
+        int reward_coins
+        bool active
+    }
+
+    USER_DAILY_QUESTS {
+        uuid id PK
+        uuid user_id FK
+        uuid quest_id FK
+        date local_date "UK with user_id, quest_id"
+        int progress
+        timestamp completed_at
+        timestamp claimed_at
+    }
+
+    ACHIEVEMENT_DEFINITIONS {
+        uuid id PK
+        string code UK
+        string name
+        string metric "total_distance, activity_count, streak, ..."
+        float target
+        int reward_coins
+    }
+
+    USER_ACHIEVEMENTS {
+        uuid user_id PK, FK
+        uuid achievement_id PK, FK
+        timestamp unlocked_at
+    }
+
+    %% ---------- Feeding (Should) ----------
+    FOOD_ITEMS {
+        uuid id PK
+        string name
+        int cost_coins
+        int bond_points
+    }
+
+    USER_FOOD_INVENTORY {
+        uuid user_id PK, FK
+        uuid food_item_id PK, FK
+        int quantity
+    }
+
+    FEEDINGS {
+        uuid id PK
+        uuid user_tomo_id FK
+        uuid food_item_id FK
+        date local_date "max 3 per tomo per day"
+        timestamp fed_at
+    }
+
+    %% ---------- Relationships ----------
+    USERS ||--o{ USER_TOMOS : owns
+    USERS |o--o| USER_TOMOS : equips
+    SPECIES ||--o{ USER_TOMOS : "is species of"
+    SPECIES ||--|{ SKINS : has
+    SKINS ||--o{ USER_TOMOS : wears
+
+    USERS ||--o{ FRIEND_REQUESTS : sends
+    USERS ||--o{ FRIEND_REQUESTS : receives
+    USERS ||--o{ FRIENDSHIPS : "is user_a"
+    USERS ||--o{ FRIENDSHIPS : "is user_b"
+
+    USERS ||--o{ ACTIVITIES : records
+    USER_TOMOS ||--o{ ACTIVITIES : accompanies
+    ACTIVITIES ||--|{ ACTIVITY_POINTS : contains
+    ACTIVITIES ||--o| ACTIVITY_REWARDS : earns
+    USERS ||--o{ DAILY_STATS : "aggregates into"
+
+    USERS ||--o{ COIN_TRANSACTIONS : ledger
+
+    BANNERS ||--|{ BANNER_RATES : defines
+    BANNERS ||--|{ BANNER_SPECIES : pools
+    SPECIES ||--o{ BANNER_SPECIES : "appears in"
+    USERS ||--o{ USER_PITY : tracks
+    BANNERS ||--o{ USER_PITY : "counted for"
+    USERS ||--o{ SUMMONS : performs
+    BANNERS ||--o{ SUMMONS : "rolled on"
+    SPECIES ||--o{ SUMMONS : result
+    SUMMONS |o--o| USER_TOMOS : creates
+
+    QUEST_DEFINITIONS ||--o{ USER_DAILY_QUESTS : "instantiated as"
+    USERS ||--o{ USER_DAILY_QUESTS : has
+    ACHIEVEMENT_DEFINITIONS ||--o{ USER_ACHIEVEMENTS : "unlocked as"
+    USERS ||--o{ USER_ACHIEVEMENTS : unlocks
+
+    FOOD_ITEMS ||--o{ USER_FOOD_INVENTORY : stocked
+    USERS ||--o{ USER_FOOD_INVENTORY : holds
+    USER_TOMOS ||--o{ FEEDINGS : "is fed"
+    FOOD_ITEMS ||--o{ FEEDINGS : used
