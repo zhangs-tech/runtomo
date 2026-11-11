@@ -1,21 +1,28 @@
 %% RunTomo MVP ERD (derived from docs/usecases)
 %% Not stored as tables: mood (UC-10, computed), leaderboards (UC-16, from DAILY_STATS),
-%% bond level thresholds and reward tiers (server config).
+%% bond level thresholds, reward tiers, caps, stride and other tunable values (server config).
+%% Every local_date is a UTC+7 day (docs/usecases/README.md, Days).
 erDiagram
     %% ---------- Accounts & social ----------
     USERS {
         uuid id PK
-        string auth_provider "google, email"
-        string auth_subject UK "provider user id, unique with auth_provider"
-        string display_name "3-20 chars"
-        string friend_code UK
-        string timezone "IANA, for local day"
+        string auth_provider "google only in the MVP (UC-01 BR-4)"
+        string auth_subject UK "Google sub claim, not email (UC-01 BR-6), unique with auth_provider"
+        string display_name "3-20 chars, not unique"
+        string friend_code UK "created at sign-up (UC-01 BR-2)"
         bigint coin_balance "cache of COIN_TRANSACTIONS"
-        uuid equipped_tomo_id FK "exactly one (UC-11)"
-        int current_streak
-        int longest_streak
-        int rest_days "max 2"
-        date last_active_date
+        uuid equipped_tomo_id FK "own Tomo only (UC-11), null until the starter exists (UC-02)"
+        timestamp created_at
+    }
+
+    REFRESH_TOKENS {
+        uuid id PK
+        uuid user_id FK
+        uuid family_id "one per sign-in, reuse revokes the whole family"
+        string token_hash UK "hash only, never the raw token"
+        uuid replaced_by_id FK "set on refresh, a replaced token sent again is reuse"
+        timestamp expires_at "30 days, tunable (UC-01 BR-7)"
+        timestamp revoked_at "sign-out, refresh or reuse"
         timestamp created_at
     }
 
@@ -23,7 +30,7 @@ erDiagram
         uuid id PK
         uuid from_user_id FK
         uuid to_user_id FK
-        string status "pending, accepted, declined"
+        string status "pending, accepted, declined, one pending per pair (UC-15)"
         timestamp created_at
     }
 
@@ -52,63 +59,26 @@ erDiagram
     }
 
     USER_TOMOS {
-        uuid id PK
+        uuid id PK "unique with user_id, for ownership FKs"
         uuid user_id FK
         uuid species_id FK
-        uuid skin_id FK
+        uuid skin_id FK "skin of the same species"
         string nickname "1-16 chars"
         int bond_points
-        int bond_level "1-10"
+        int bond_level "1-10, thresholds in config (UC-05 BR-4)"
         bigint distance_together_m
-        date birthday "date obtained"
+        date birthday "date the Player got it (UC-02 BR-3)"
     }
 
-    %% ---------- Activities ----------
-    ACTIVITIES {
-        uuid id PK
-        uuid client_id UK "idempotent upload"
-        uuid user_id FK
-        uuid user_tomo_id FK "equipped at start"
-        string type "walk, run"
-        timestamp started_at
-        timestamp ended_at
-        int moving_duration_s "excludes pauses"
-        int recorded_distance_m
-        int verified_distance_m
-        int steps
-        string validation_status "pending, valid, partially_valid, flagged"
-        date local_date
-        timestamp created_at
-    }
-
-    ACTIVITY_POINTS {
-        uuid activity_id PK, FK
-        int seq PK
-        timestamp recorded_at
-        float lat
-        float lng
-        float accuracy_m
-        float speed_mps
-        int step_count "cumulative sensor value"
-        bool is_valid "set by validation"
-    }
-
-    ACTIVITY_REWARDS {
-        uuid activity_id PK, FK "one payout per activity"
-        int coins
-        int bond_points
-        timestamp created_at
-    }
-
+    %% ---------- Daily activity ----------
     DAILY_STATS {
         uuid user_id PK, FK
-        date local_date PK
-        int recorded_distance_m
-        int verified_distance_m "drives coin tiers, streak, leaderboard"
-        int steps
-        int activity_coins "for daily cap"
-        bool is_active_day
-        bool rest_day_used
+        date local_date PK "UTC+7 day"
+        int steps "today's total from Health Connect, only goes up"
+        int distance_m "steps times stride from config"
+        int activity_coins "coins paid for this day, for the daily cap"
+        int bond_points "Bond paid for this day"
+        timestamp synced_at "last sync"
     }
 
     %% ---------- Currency ----------
@@ -117,7 +87,7 @@ erDiagram
         uuid user_id FK
         int amount "+ earn / - spend"
         string reason "activity, quest, achievement, summon, duplicate, food"
-        uuid ref_id "id of source row"
+        uuid ref_id "source row, unique with reason except food, null for activity and achievement"
         timestamp created_at
     }
 
@@ -166,7 +136,7 @@ erDiagram
         uuid id PK
         string code UK
         string title
-        string metric "verified_distance_m, steps"
+        string metric "distance_m, steps"
         int target
         int reward_coins
         bool active
@@ -176,17 +146,17 @@ erDiagram
         uuid id PK
         uuid user_id FK
         uuid quest_id FK
-        date local_date "UK with user_id, quest_id"
+        date local_date "UTC+7, UK with user_id, quest_id"
         int progress
         timestamp completed_at
-        timestamp claimed_at
+        timestamp claimed_at "auto-claimed later if the day ends first (UC-13 4a)"
     }
 
     ACHIEVEMENT_DEFINITIONS {
         uuid id PK
         string code UK
         string name
-        string metric "total_distance, activity_count, streak, ..."
+        string metric "total distance, days with 1 km, distance together, species owned"
         float target
         int reward_coins
     }
@@ -215,11 +185,14 @@ erDiagram
         uuid id PK
         uuid user_tomo_id FK
         uuid food_item_id FK
-        date local_date "max 3 per tomo per day"
+        date local_date "UTC+7, max 3 per tomo per day"
         timestamp fed_at
     }
 
     %% ---------- Relationships ----------
+    USERS ||--o{ REFRESH_TOKENS : "signs in with"
+    REFRESH_TOKENS |o--o| REFRESH_TOKENS : "replaced by"
+
     USERS ||--o{ USER_TOMOS : owns
     USERS |o--o| USER_TOMOS : equips
     SPECIES ||--o{ USER_TOMOS : "is species of"
@@ -231,11 +204,7 @@ erDiagram
     USERS ||--o{ FRIENDSHIPS : "is user_a"
     USERS ||--o{ FRIENDSHIPS : "is user_b"
 
-    USERS ||--o{ ACTIVITIES : records
-    USER_TOMOS ||--o{ ACTIVITIES : accompanies
-    ACTIVITIES ||--|{ ACTIVITY_POINTS : contains
-    ACTIVITIES ||--o| ACTIVITY_REWARDS : earns
-    USERS ||--o{ DAILY_STATS : "aggregates into"
+    USERS ||--o{ DAILY_STATS : syncs
 
     USERS ||--o{ COIN_TRANSACTIONS : ledger
 

@@ -19,21 +19,21 @@ The Player taps **Feed** on the Home Screen.
 
 ## Main Flow
 
-1. The app shows the food items, with prices and how many the Player has.
+1. The System shows the food items, with prices and how many the Player has.
 2. The Player picks an item they own, or buys one with TomoCoins.
-3. The System deducts the cost, if the Player is buying.
+3. If the Player is buying, the System deducts the cost.
 4. The Player drags the food to the Tomo, or taps **Give**.
-5. The app plays an eating animation and a happy reaction.
-6. The System adds a small amount of Bond to the Tomo.
+5. The System plays an eating animation and a happy reaction.
+6. The System adds the item's Bond to the Tomo (BR-1).
 
 ## Alternate / Exception Flows
 
-- **2a. Not enough TomoCoins:** Show the shortfall and a **Start Run** button.
-- **6a. The Tomo has already been fed the daily limit:** It plays a "full" animation. No Bond is given and the item is not used up.
+- **2a. Not enough TomoCoins:** The System shows the shortfall.
+- **6a. The Tomo is at the daily feeding limit:** It plays a "full" animation. The Tomo gets no Bond, and the Player keeps the item.
 
 ## Postconditions
 
-- The Player's food stock or TomoCoins are reduced, and the Tomo's Bond goes up.
+- The Player's food stock or TomoCoins decrease, and the Tomo's Bond increases.
 
 ## Business Rules
 
@@ -44,8 +44,8 @@ The Player taps **Feed** on the Home Screen.
   | Snack | 50 TomoCoins | +3 |
   | Treat | 150 TomoCoins | +10 |
 
-- BR-2: Each Tomo can be fed at most 3 times per day *(tunable)*, so coins cannot simply be traded for Bond.
-- BR-3: The Bond from food stays small compared with the Bond from moving, so movement remains the main way to grow.
+- BR-2: The Player can feed each Tomo at most 3 times per day *(tunable)*, so the Player cannot simply trade coins for Bond.
+- BR-3: With the values in BR-1 and BR-2, food gives a Tomo at most 30 Bond per day. Moving gives 10 Bond per km with no daily cap ([UC-05](UC-05-calculate-daily-rewards.md) BR-3), so 3 km of moving matches a full day of food. Movement stays the main way to grow.
 
 ## Related
 
@@ -56,3 +56,45 @@ The Player taps **Feed** on the Home Screen.
 
 - Should species have favorite or disliked foods in the MVP, or later?
 - Does feeding change the mood, for example to Happy for 1 hour?
+
+## Diagrams
+
+```mermaid
+sequenceDiagram
+    actor P as Player
+    participant A as App
+    participant S as Server
+
+    P->>A: Tap Feed
+    A->>S: GET /food
+    S-->>A: Items, prices, owned counts, feeds left today
+    A-->>P: Food list
+    opt Player buys an item
+        P->>A: Buy an item
+        A->>S: POST /food/{itemId}/purchase
+        alt Not enough TomoCoins
+            S-->>A: Error with the shortfall
+            A-->>P: Shortfall
+        else Enough TomoCoins
+            S->>S: Deduct coins, add the item to the inventory
+            S-->>A: New balance and inventory
+        end
+    end
+    P->>A: Drag food to the Tomo, or tap Give
+    A->>S: POST /me/tomos/{id}/feed (foodItemId)
+    alt Already fed 3 times today
+        S-->>A: Limit reached, item kept
+        A-->>P: Full animation
+    else Under the limit
+        S->>S: Use 1 item, save the feeding, add Bond
+        S-->>A: New Bond and mood
+        A-->>P: Eating animation and happy reaction
+    end
+```
+
+### Technical notes
+
+- Items are `food_items`, stock is `user_food_inventory`, and each feeding is a row in `feedings`. The daily limit (BR-2) counts `feedings` for the Tomo and the UTC+7 `local_date`, using the `feedings_tomo_date` index.
+- Buying adds a `coin_transactions` row with reason `food` and updates `users.coin_balance` in the same transaction. The once-per-source unique index excludes `food`, because a Player can buy the same item many times.
+- Using the item, saving the feeding and adding Bond run in one transaction.
+- The app waits for the server before playing step 5, so it never shows eating followed by "full".

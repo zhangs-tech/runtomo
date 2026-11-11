@@ -20,21 +20,21 @@ The first sign-in finishes.
 
 ## Main Flow
 
-1. The app shows a short intro: "Every step is an adventure. Choose your companion."
-2. The app shows the starter Tomos (for example 3 Common species).
+1. The System shows a short intro, for example: "Every step is an adventure. Choose your companion."
+2. The System shows the starter Tomos (for example 3 Common species).
 3. The Player taps a starter to preview it (animation and short description).
 4. The Player confirms their choice.
-5. The app asks the Player to give the Tomo a nickname. The species name is filled in as the default.
+5. The System asks the Player to give the Tomo a nickname, with the species name as the default.
 6. The Player enters a nickname, or keeps the default.
 7. The System creates the Tomo with Bond Level 1, Distance Together 0 km and Birthday set to today.
 8. The System makes it the Player's equipped Tomo.
-9. The app plays a short "hello" animation and goes to the Home Screen ([UC-08](UC-08-view-home-screen.md)).
+9. The System plays a short "hello" animation and goes to the Home Screen ([UC-08](UC-08-view-home-screen.md)).
 
 ## Alternate / Exception Flows
 
-- **4a. The Player goes back:** Return to step 2.
-- **6a. Nickname is invalid:** Show the rule and ask again.
-- **7a. Network error:** Keep the choice on the device and retry. Do not let the Player into the Home Screen without a Tomo.
+- **4a. The Player does not confirm:** The flow returns to step 2.
+- **6a. The nickname is invalid:** The System shows the rule and asks again.
+- **7a. The connection drops:** The System keeps the choice and tries again. The Player cannot reach the Home Screen without a Tomo.
 
 ## Postconditions
 
@@ -44,7 +44,7 @@ The first sign-in finishes.
 
 - BR-1: Starter Tomos are a fixed set of Common species. Players cannot get them from the gacha in the MVP.
 - BR-2: A nickname is 1–16 characters. Players can change it later ([UC-11](UC-11-manage-tomo-collection.md)).
-- BR-3: The Tomo's Birthday is the date it was obtained.
+- BR-3: The Tomo's Birthday is the date the Player got it.
 
 ## Related
 
@@ -55,3 +55,37 @@ The first sign-in finishes.
 
 - How many starters, and which species?
 - Should starters also appear in the gacha pool?
+
+## Diagrams
+
+```mermaid
+sequenceDiagram
+    actor P as Player
+    participant A as App
+    participant S as Server
+
+    A->>S: GET /species/starters
+    S-->>A: Starter species
+    A-->>P: Intro, then the starters
+    P->>A: Preview and confirm a starter
+    A-->>P: Ask for a nickname, species name as default
+    P->>A: Nickname
+    A->>S: POST /me/tomos/starter (speciesId, nickname)
+    alt Connection fails
+        A->>A: Keep the choice on the device and retry
+    else Player already owns a Tomo (an earlier retry worked)
+        S-->>A: 409
+        A-->>P: Home Screen
+    else Request is valid
+        S->>S: Create Tomo with the default skin, set it as equipped
+        S-->>A: New Tomo
+        A-->>P: Hello animation, then Home Screen
+    end
+```
+
+### Technical notes
+
+- Starter species are the rows in `species` with `is_starter = true`.
+- The server creates the `user_tomos` row with the species' default skin (`skins.is_default`), then sets `users.equipped_tomo_id`, in one transaction.
+- The server rejects a starter request from a Player who already owns a Tomo. A retry after a lost response therefore cannot create a second starter, and the app treats that `409` as success.
+- The server checks the nickname length again (`user_tomos.nickname` allows 1–16 characters).
