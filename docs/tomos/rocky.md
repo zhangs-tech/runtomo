@@ -6,7 +6,7 @@
 | Pronunciation | ROK-ee |
 | Rarity | Common |
 | Starter | Yes |
-| In gacha pool | No |
+| In gacha pool | Yes, for now (see [README](README.md)) |
 | Element hint | Earth (not used in the MVP) |
 | Asset | [rocky.jpg](../../assets/tomos/rocky.jpg) |
 

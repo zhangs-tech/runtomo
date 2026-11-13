@@ -6,7 +6,7 @@
 | Pronunciation | AIR-oh-blast |
 | Rarity | Common |
 | Starter | Yes |
-| In gacha pool | No |
+| In gacha pool | Yes, for now (see [README](README.md)) |
 | Element hint | Wind (not used in the MVP) |
 | Asset | [aeroblast.jpg](../../assets/tomos/aeroblast.jpg) |
 

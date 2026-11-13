@@ -6,11 +6,11 @@ Each file in this folder describes one Tomo species: its name, rarity and look. 
 
 | Name | Code | Rarity | Starter | In gacha pool | Element hint | File |
 |---|---|---|---|---|---|---|
-| Luppy | `luppy` | Common | Yes | No | Fire | [luppy.md](luppy.md) |
-| Rocky | `rocky` | Common | Yes | No | Earth | [rocky.md](rocky.md) |
-| Aeroblast | `aeroblast` | Common | Yes | No | Wind | [aeroblast.md](aeroblast.md) |
+| Luppy | `luppy` | Common | Yes | Yes | Fire | [luppy.md](luppy.md) |
+| Rocky | `rocky` | Common | Yes | Yes | Earth | [rocky.md](rocky.md) |
+| Aeroblast | `aeroblast` | Common | Yes | Yes | Wind | [aeroblast.md](aeroblast.md) |
 
-These are the 3 starters for [UC-02 Choose Starter Tomo](../usecases/UC-02-choose-starter-tomo.md). Starters are Common and do not appear in the gacha (UC-02 BR-1). The gacha pool for [UC-12](../usecases/UC-12-summon-tomo.md) is not decided yet.
+These are the 3 starters for [UC-02 Choose Starter Tomo](../usecases/UC-02-choose-starter-tomo.md). Until more species exist, they are also the gacha pool for [UC-12](../usecases/UC-12-summon-tomo.md) (UC-02 BR-1). The pool has no Epic or Legendary species yet, so the pity rule (UC-12 BR-3) cannot apply, and the System does not show a pity counter.
 
 ## Element Hints
 

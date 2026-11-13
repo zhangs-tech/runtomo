@@ -6,7 +6,7 @@
 | Pronunciation | LUP-ee |
 | Rarity | Common |
 | Starter | Yes |
-| In gacha pool | No |
+| In gacha pool | Yes, for now (see [README](README.md)) |
 | Element hint | Fire (not used in the MVP) |
 | Asset | [luppy.jpg](../../assets/tomos/luppy.jpg) |
 

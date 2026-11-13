@@ -42,7 +42,7 @@ The first sign-in finishes.
 
 ## Business Rules
 
-- BR-1: Starter Tomos are a fixed set of Common species. Players cannot get them from the gacha in the MVP.
+- BR-1: Starter Tomos are a fixed set of Common species. Until more species exist, the starters are also the gacha pool ([UC-12](UC-12-summon-tomo.md)).
 - BR-2: A nickname is 1–16 characters. Players can change it later ([UC-11](UC-11-manage-tomo-collection.md)).
 - BR-3: The Tomo's Birthday is the date the Player got it.
 
@@ -54,7 +54,7 @@ The first sign-in finishes.
 ## Open Questions
 
 - How many starters, and which species?
-- Should starters also appear in the gacha pool?
+- Should starters stay in the gacha pool after more species exist?
 
 ## Diagrams
 
