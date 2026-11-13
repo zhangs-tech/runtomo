@@ -43,7 +43,16 @@ cp secrets.properties.example secrets.properties
 ```
 
 - `runtomo.googleWebClientId`: Google OAuth web client ID (must match `GOOGLE_WEB_CLIENT_ID` on the server).
-- `runtomo.apiBaseUrl`: Backend URL (`http://10.0.2.2:8080/` for the emulator, or `http://localhost:8080/` with `adb reverse tcp:8080 tcp:8080`).
+- `runtomo.apiBaseUrl`: Backend URL for debug builds. Use `http://localhost:8080/`. Release builds use the production URL in `app/build.gradle.kts`.
+
+Connect the emulator or USB device to the local server:
+
+```sh
+adb reverse tcp:8080 tcp:8080
+```
+
+Run this command again after each emulator or device restart.
+Do not use `http://10.0.2.2:8080/`: Android 17 blocks local network addresses for this app, and the debug network security config allows plain HTTP only to `localhost`.
 
 ### 2. Build and Test
 
