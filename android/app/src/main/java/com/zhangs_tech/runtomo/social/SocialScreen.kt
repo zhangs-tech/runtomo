@@ -2,6 +2,7 @@ package com.zhangs_tech.runtomo.social
 
 import android.content.ClipData
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,22 +12,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,25 +41,39 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.core.formatKm
+import com.zhangs_tech.runtomo.tomo.Rarity
+import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.SpeciesSilhouette
 import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.tomo.TomoPose
+import com.zhangs_tech.runtomo.ui.components.CompactButton
+import com.zhangs_tech.runtomo.ui.components.GroundedGlow
+import com.zhangs_tech.runtomo.ui.components.PrimaryButton
+import com.zhangs_tech.runtomo.ui.components.RuntomoCard
+import com.zhangs_tech.runtomo.ui.components.RuntomoFilterChip
+import com.zhangs_tech.runtomo.ui.components.SecondaryButton
+import com.zhangs_tech.runtomo.ui.components.TonalButton
+import com.zhangs_tech.runtomo.ui.components.journalTextFieldColors
+import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 import kotlinx.coroutines.launch
 
 private enum class SocialSection(val labelRes: Int) {
@@ -74,21 +88,31 @@ fun SocialScreen(modifier: Modifier = Modifier) {
     var section by rememberSaveable { mutableIntStateOf(SocialSection.LEADERBOARD.ordinal) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.social_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.social_title), style = MaterialTheme.typography.headlineSmall) },
+            )
+        },
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            PrimaryTabRow(selectedTabIndex = section) {
+            PrimaryTabRow(
+                selectedTabIndex = section,
+                containerColor = MaterialTheme.colorScheme.background,
+            ) {
                 SocialSection.entries.forEach {
+                    val selected = section == it.ordinal
                     Tab(
-                        selected = section == it.ordinal,
+                        selected = selected,
                         onClick = { section = it.ordinal },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         text = { Text(stringResource(it.labelRes)) },
                     )
                 }
             }
             when (SocialSection.entries[section]) {
                 SocialSection.LEADERBOARD -> LeaderboardSection(onAddFriend = { section = SocialSection.ADD_FRIEND.ordinal })
-                SocialSection.FRIENDS -> FriendsSection()
+                SocialSection.FRIENDS -> FriendsSection(onAddFriend = { section = SocialSection.ADD_FRIEND.ordinal })
                 SocialSection.ADD_FRIEND -> AddFriendSection()
             }
         }
@@ -116,32 +140,43 @@ fun LeaderboardContent(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             LeaderboardPeriod.entries.forEach { period ->
-                FilterChip(
+                RuntomoFilterChip(
                     selected = uiState.period == period,
                     onClick = { onPeriodChange(period) },
-                    label = { Text(stringResource(period.labelRes)) },
+                    label = stringResource(period.labelRes),
                 )
             }
         }
         val board = uiState.leaderboard
         when {
-            board != null && board.rows.size <= 1 -> Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(stringResource(R.string.leaderboard_empty), textAlign = TextAlign.Center)
-                Button(onClick = onAddFriend) { Text(stringResource(R.string.social_add_friend)) }
-            }
+            board != null && board.rows.size <= 1 -> EmptySocialCard(
+                message = stringResource(R.string.leaderboard_empty),
+                onAddFriend = onAddFriend,
+            )
             board != null -> {
-                Text(
-                    text = if (board.ahead != null && board.gapM != null) {
-                        stringResource(R.string.leaderboard_behind, formatKm(board.gapM), board.ahead.displayName)
-                    } else {
-                        stringResource(R.string.leaderboard_first)
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceContainer, MaterialTheme.shapes.small)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_walk),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = if (board.ahead != null && board.gapM != null) {
+                            stringResource(R.string.leaderboard_behind, formatKm(board.gapM), board.ahead.displayName)
+                        } else {
+                            stringResource(R.string.leaderboard_first)
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
                 board.rows.forEach { row -> LeaderboardRowCard(row, onClick = { selected = row }) }
             }
             uiState.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -159,32 +194,76 @@ fun LeaderboardContent(
 
 @Composable
 private fun LeaderboardRowCard(row: LeaderboardRow, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick),
-        colors = if (row.isMe) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        } else {
-            CardDefaults.cardColors()
-        },
+    val colors = MaterialTheme.colorScheme
+    RuntomoCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(role = Role.Button, onClick = onClick),
+        containerColor = if (row.isMe) colors.primaryContainer else colors.surfaceContainerLowest,
+        borderColor = if (row.isMe) colors.primary else colors.outlineVariant,
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("#${row.rank}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            PlayerTomoArt(row.player)
+            Text(
+                text = "#${row.rank}",
+                style = MaterialTheme.typography.titleLarge,
+                color = if (row.isMe) colors.primary else colors.onSurfaceVariant,
+                modifier = Modifier.widthIn(min = 32.dp),
+            )
+            PlayerTomoArt(row.player, size = 44)
             Text(
                 text = if (row.isMe) stringResource(R.string.leaderboard_you, row.player.displayName) else row.player.displayName,
+                style = if (row.isMe) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge,
+                color = if (row.isMe) colors.onPrimaryContainer else colors.onSurface,
                 modifier = Modifier.weight(1f),
             )
-            Text(stringResource(R.string.leaderboard_km, formatKm(row.distanceM)), style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.leaderboard_km, formatKm(row.distanceM)),
+                style = MaterialTheme.typography.titleLarge,
+                color = if (row.isMe) colors.onPrimaryContainer else colors.onSurface,
+            )
         }
     }
 }
 
 @Composable
-private fun FriendsSection(viewModel: FriendsViewModel = hiltViewModel()) {
+private fun EmptySocialCard(message: String, onAddFriend: () -> Unit) {
+    RuntomoCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_social_filled),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            PrimaryButton(onClick = onAddFriend) { Text(stringResource(R.string.social_add_friend)) }
+        }
+    }
+}
+
+@Composable
+private fun FriendsSection(onAddFriend: () -> Unit, viewModel: FriendsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.load() }
     FriendsContent(
@@ -194,6 +273,7 @@ private fun FriendsSection(viewModel: FriendsViewModel = hiltViewModel()) {
         onDecline = viewModel::decline,
         onSelect = viewModel::select,
         onRemove = viewModel::remove,
+        onAddFriend = onAddFriend,
     )
 }
 
@@ -205,6 +285,7 @@ fun FriendsContent(
     onDecline: (String) -> Unit,
     onSelect: (Friend?) -> Unit,
     onRemove: (Friend) -> Unit,
+    onAddFriend: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -214,44 +295,58 @@ fun FriendsContent(
         if (uiState.requests.isNotEmpty()) {
             Text(stringResource(R.string.friends_requests), style = MaterialTheme.typography.titleMedium)
             uiState.requests.forEach { request ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+                RuntomoCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        PlayerTomoArt(request.from)
-                        Text(request.from.displayName, modifier = Modifier.weight(1f))
+                        PlayerTomoArt(request.from, size = 44)
+                        Text(request.from.displayName, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         TextButton(onClick = { onDecline(request.id) }, enabled = uiState.busyId == null) {
                             Text(stringResource(R.string.friends_decline))
                         }
-                        Button(onClick = { onAccept(request.id) }, enabled = uiState.busyId == null) {
+                        CompactButton(onClick = { onAccept(request.id) }, enabled = uiState.busyId == null) {
                             Text(stringResource(R.string.friends_accept))
                         }
                     }
                 }
             }
         }
-        Text(stringResource(R.string.social_friends), style = MaterialTheme.typography.titleMedium)
+        if (uiState.friends.isNotEmpty() || uiState.requests.isNotEmpty() || uiState.isLoading || uiState.error != null) {
+            Text(stringResource(R.string.social_friends), style = MaterialTheme.typography.titleMedium)
+        }
         when {
             uiState.friends.isNotEmpty() -> uiState.friends.forEach { friend ->
-                Card(modifier = Modifier.fillMaxWidth().clickable(role = Role.Button) { onSelect(friend) }) {
+                RuntomoCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable(role = Role.Button) { onSelect(friend) },
+                ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(14.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        PlayerTomoArt(friend.player)
-                        Column(modifier = Modifier.weight(1f)) {
+                        PlayerTomoArt(friend.player, size = 44)
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(friend.player.displayName, style = MaterialTheme.typography.titleMedium)
-                            Text(friend.distancesText(), style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = friend.distancesText(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
             }
             uiState.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             uiState.error != null -> ErrorWithRetry(uiState.error, onRetry)
-            else -> Text(stringResource(R.string.friends_empty))
+            else -> EmptySocialCard(
+                message = stringResource(R.string.friends_empty),
+                onAddFriend = onAddFriend,
+            )
         }
     }
 
@@ -317,13 +412,25 @@ fun AddFriendContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         uiState.myFriendCode?.let { code ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.add_friend_your_code), style = MaterialTheme.typography.labelLarge)
-                    Text(code, style = MaterialTheme.typography.headlineMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { onCopy(code) }) { Text(stringResource(R.string.add_friend_copy)) }
-                        Button(onClick = onShare) { Text(stringResource(R.string.add_friend_share)) }
+            RuntomoCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = stringResource(R.string.add_friend_your_code),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = code,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SecondaryButton(onClick = { onCopy(code) }, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.add_friend_copy))
+                        }
+                        PrimaryButton(onClick = onShare, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.add_friend_share))
+                        }
                     }
                 }
             }
@@ -332,33 +439,47 @@ fun AddFriendContent(
             value = uiState.code,
             onValueChange = onCodeChange,
             modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.small,
+            colors = journalTextFieldColors(),
             label = { Text(stringResource(R.string.add_friend_code_label)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onLookUp() }),
         )
-        OutlinedButton(onClick = onLookUp, enabled = !uiState.isBusy && uiState.code.isNotBlank()) {
+        TonalButton(
+            onClick = onLookUp,
+            enabled = !uiState.isBusy && uiState.code.isNotBlank(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(stringResource(R.string.add_friend_look_up))
         }
         uiState.preview?.let { player ->
-            Card(modifier = Modifier.fillMaxWidth()) {
+            RuntomoCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(14.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PlayerTomoArt(player)
-                    Column(modifier = Modifier.weight(1f)) {
+                    PlayerTomoArt(player, size = 44)
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(player.displayName, style = MaterialTheme.typography.titleMedium)
-                        player.tomo?.let { Text(stringResource(R.string.friend_tomo, it.nickname), style = MaterialTheme.typography.bodySmall) }
+                        player.tomo?.let {
+                            Text(
+                                text = stringResource(R.string.friend_tomo, it.nickname),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-                    Button(onClick = onSend, enabled = !uiState.isBusy) { Text(stringResource(R.string.add_friend_send)) }
+                    CompactButton(onClick = onSend, enabled = !uiState.isBusy) {
+                        Text(stringResource(R.string.add_friend_send))
+                    }
                 }
             }
         }
         uiState.result?.let { Text(it.text(), style = MaterialTheme.typography.titleMedium) }
         uiState.error?.let { ErrorText(it) }
-        if (uiState.isBusy) CircularProgressIndicator()
+        if (uiState.isBusy) CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
@@ -380,19 +501,40 @@ private fun PlayerCardDialog(
     onDismiss: () -> Unit,
     onRemove: (() -> Unit)? = null,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { PlayerTomoArt(player, size = 96) },
-        title = { Text(player.displayName) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                player.tomo?.let { Text(stringResource(R.string.friend_tomo, it.nickname)) }
-                details.forEach { Text(it) }
+    Dialog(onDismissRequest = onDismiss) {
+        RuntomoCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    GroundedGlow(modifier = Modifier.size(128.dp))
+                    PlayerTomoArt(player, size = 96)
+                }
+                Text(player.displayName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                player.tomo?.let {
+                    Text(
+                        text = stringResource(R.string.friend_tomo, it.nickname),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                details.forEach {
+                    Text(it, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    onRemove?.let {
+                        TextButton(onClick = it) { Text(stringResource(R.string.friends_remove)) }
+                    }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
+                }
             }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
-        dismissButton = onRemove?.let { { TextButton(onClick = it) { Text(stringResource(R.string.friends_remove)) } } },
-    )
+        }
+    }
 }
 
 @Composable
@@ -409,7 +551,7 @@ private fun ErrorWithRetry(error: SocialError?, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         error?.let { ErrorText(it) }
-        OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+        SecondaryButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
     }
 }
 
@@ -428,3 +570,77 @@ private val LeaderboardPeriod.labelRes: Int
         LeaderboardPeriod.WEEK -> R.string.period_week
         LeaderboardPeriod.MONTH -> R.string.period_month
     }
+
+@Preview(showBackground = true)
+@Composable
+private fun LeaderboardContentPreview() {
+    val luppy = Species("luppy", "Luppy", Rarity.COMMON, "Runs hot.")
+    val rocky = Species("rocky", "Rocky", Rarity.COMMON, "Steady.")
+    val ana = PlayerCard("u2", "Ana", DisplayedTomo("Pebble", rocky))
+    val kai = PlayerCard("u1", "Kai", DisplayedTomo("Mochi", luppy))
+    RuntomoTheme {
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.padding(top = 24.dp)) {
+                LeaderboardContent(
+                    uiState = LeaderboardUiState(
+                        isLoading = false,
+                        leaderboard = Leaderboard(
+                            rows = listOf(
+                                LeaderboardRow(1, ana, 14_200, isMe = false),
+                                LeaderboardRow(2, kai, 12_400, isMe = true),
+                            ),
+                            ahead = ana,
+                            gapM = 1_800,
+                        ),
+                    ),
+                    onPeriodChange = {},
+                    onRetry = {},
+                    onAddFriend = {},
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FriendsEmptyPreview() {
+    RuntomoTheme {
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.padding(top = 24.dp)) {
+                FriendsContent(
+                    uiState = FriendsUiState(isLoading = false),
+                    onRetry = {},
+                    onAccept = {},
+                    onDecline = {},
+                    onSelect = {},
+                    onRemove = {},
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddFriendContentPreview() {
+    val rocky = Species("rocky", "Rocky", Rarity.COMMON, "Steady.")
+    RuntomoTheme {
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.padding(top = 24.dp)) {
+                AddFriendContent(
+                    uiState = AddFriendUiState(
+                        myFriendCode = "4829-1034",
+                        code = "12345678",
+                        preview = PlayerCard("u2", "Ana", DisplayedTomo("Pebble", rocky)),
+                    ),
+                    onCopy = {},
+                    onShare = {},
+                    onCodeChange = {},
+                    onLookUp = {},
+                    onSend = {},
+                )
+            }
+        }
+    }
+}

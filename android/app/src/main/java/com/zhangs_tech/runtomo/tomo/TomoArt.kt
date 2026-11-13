@@ -52,15 +52,16 @@ fun TomoArt(
 @Composable
 fun SpeciesSilhouette(species: Species?, modifier: Modifier = Modifier, size: Dp = 96.dp) {
     val art = species?.let { tomoArt(it.code, TomoPose.DEFAULT) }
+    val tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)
     if (art != null) {
         Image(
             painter = painterResource(art),
             contentDescription = null,
             modifier = modifier.size(size),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outlineVariant, BlendMode.SrcIn),
+            colorFilter = ColorFilter.tint(tint, BlendMode.SrcIn),
         )
     } else {
-        LetterCircle("?", MaterialTheme.colorScheme.outlineVariant, size, modifier)
+        LetterCircle("?", tint, size, modifier)
     }
 }
 
@@ -105,6 +106,10 @@ private fun tomoArt(speciesCode: String, pose: TomoPose): Int? = when (speciesCo
     }
     else -> null
 }
+
+/** Whether the ACTIVITY picture runs toward the right. Most of them run toward the left. */
+val Species.activityFacesRight: Boolean
+    get() = code == "aeroblast"
 
 val Rarity.color: Color
     get() = when (this) {

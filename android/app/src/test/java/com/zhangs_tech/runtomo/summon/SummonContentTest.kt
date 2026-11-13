@@ -31,9 +31,9 @@ class SummonContentTest {
     fun banner_showsBalanceCostPityAndRates() {
         composeRule.setContent { SummonContent(idle, SummonActions()) }
 
-        composeRule.onNodeWithText(text(R.string.summon_balance, "1,500")).assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.summon_pity, 20)).assertIsDisplayed()
-        composeRule.onNodeWithText("Nova").assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.summon_balance, "1,500")).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.summon_pity, 20)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Nova").performScrollTo().assertIsDisplayed()
         composeRule.onAllNodesWithText(text(R.string.summon_rate, "10.0")).assertCountEquals(2)
     }
 
@@ -42,7 +42,7 @@ class SummonContentTest {
         var requests = 0
         composeRule.setContent { SummonContent(idle, SummonActions(onSummon = { requests++ })) }
 
-        composeRule.onNode(hasText(text(R.string.summon)) and hasClickAction()).performScrollTo().performClick()
+        composeRule.onNode(hasText(text(R.string.summon)) and hasClickAction()).performClick()
 
         assertEquals(1, requests)
     }
@@ -58,7 +58,7 @@ class SummonContentTest {
     fun notEnoughCoins_showsDistanceNeeded() {
         composeRule.setContent { SummonContent(idle.copy(distanceNeededM = 3200), SummonActions()) }
 
-        composeRule.onNodeWithText(text(R.string.summon_not_enough, "3.2")).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.summon_not_enough, "3.2")).assertIsDisplayed()
     }
 
     @Test

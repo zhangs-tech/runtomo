@@ -2,30 +2,29 @@ package com.zhangs_tech.runtomo.starter
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,7 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +49,11 @@ import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.tomo.TomoPose
+import com.zhangs_tech.runtomo.ui.components.GroundedGlow
+import com.zhangs_tech.runtomo.ui.components.PrimaryButton
+import com.zhangs_tech.runtomo.ui.components.RuntomoCard
+import com.zhangs_tech.runtomo.ui.components.SecondaryButton
+import com.zhangs_tech.runtomo.ui.components.journalTextFieldColors
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 import kotlinx.coroutines.delay
 
@@ -120,13 +126,17 @@ private fun ColumnScope.PickStep(
     onSelect: (Species) -> Unit,
     onConfirmSelection: () -> Unit,
 ) {
-    Text(stringResource(R.string.choose_starter_intro), style = MaterialTheme.typography.titleMedium)
-    Text(stringResource(R.string.choose_starter_title), style = MaterialTheme.typography.headlineMedium)
+    Text(
+        text = stringResource(R.string.choose_starter_title),
+        style = MaterialTheme.typography.headlineMedium,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
     uiState.starters.forEach { species ->
         StarterCard(species, isSelected = species == uiState.selected, onClick = { onSelect(species) })
     }
     uiState.selected?.let { selected ->
-        Button(onClick = onConfirmSelection, modifier = Modifier.fillMaxWidth()) {
+        PrimaryButton(onClick = onConfirmSelection, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
             Text(stringResource(R.string.choose_starter_confirm, selected.name))
         }
     }
@@ -134,27 +144,52 @@ private fun ColumnScope.PickStep(
 
 @Composable
 private fun StarterCard(species: Species, isSelected: Boolean, onClick: () -> Unit) {
-    Card(
+    val colors = MaterialTheme.colorScheme
+    val artScale by animateFloatAsState(if (isSelected) 1.08f else 1f, tween(180), label = "starter")
+    RuntomoCard(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
             .selectable(selected = isSelected, onClick = onClick, role = Role.RadioButton),
-        colors = if (isSelected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        } else {
-            CardDefaults.cardColors()
-        },
+        containerColor = if (isSelected) colors.primaryContainer else colors.surfaceContainerLowest,
+        borderColor = if (isSelected) colors.primary else colors.outlineVariant,
+        borderWidth = if (isSelected) 2.dp else 1.5.dp,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TomoArt(species, size = 64.dp)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(species.name, style = MaterialTheme.typography.titleLarge)
+            TomoArt(
+                species = species,
+                size = 76.dp,
+                pose = if (isSelected) TomoPose.HAPPY else TomoPose.DEFAULT,
+                modifier = Modifier.graphicsLayer {
+                    scaleX = artScale
+                    scaleY = artScale
+                },
+            )
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = species.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = if (isSelected) colors.onPrimaryContainer else colors.onSurface,
+                )
                 if (isSelected) {
-                    Text(species.description, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = species.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.onPrimaryContainer,
+                    )
                 }
+            }
+            if (isSelected) {
+                Icon(
+                    painterResource(R.drawable.ic_check_circle),
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.size(24.dp),
+                )
             }
         }
     }
@@ -168,7 +203,10 @@ private fun ColumnScope.NicknameStep(
     onSave: () -> Unit,
     onBack: () -> Unit,
 ) {
-    TomoArt(species, size = 128.dp, pose = TomoPose.HAPPY)
+    Box(contentAlignment = Alignment.Center) {
+        GroundedGlow(modifier = Modifier.size(180.dp))
+        TomoArt(species, size = 140.dp, pose = TomoPose.HAPPY)
+    }
     Text(
         text = stringResource(R.string.nickname_title, species.name),
         style = MaterialTheme.typography.headlineSmall,
@@ -178,8 +216,10 @@ private fun ColumnScope.NicknameStep(
         value = uiState.nickname,
         onValueChange = onNicknameChange,
         modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
         label = { Text(stringResource(R.string.nickname_label)) },
         supportingText = { Text(stringResource(R.string.nickname_rule)) },
+        colors = journalTextFieldColors(),
         isError = uiState.error == StarterError.InvalidNickname,
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -189,10 +229,12 @@ private fun ColumnScope.NicknameStep(
     if (uiState.isSaving) {
         CircularProgressIndicator()
     } else {
-        Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
+        PrimaryButton(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(if (uiState.error == null) R.string.nickname_confirm else R.string.retry))
         }
-        TextButton(onClick = onBack) { Text(stringResource(R.string.back)) }
+        TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.back))
+        }
     }
 }
 
@@ -208,17 +250,32 @@ private fun HelloStep(greeting: Greeting, onFinish: () -> Unit) {
         delay(HELLO_PAUSE_MILLIS)
         onFinish()
     }
-    Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 2.dp, shadowElevation = 2.dp) {
+    RuntomoCard {
         Text(
             text = stringResource(R.string.starter_hello, greeting.nickname),
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
         )
     }
-    TomoArt(greeting.species, size = 160.dp, pose = TomoPose.EXCITED, modifier = Modifier.graphicsLayer { translationY = offsetY.value.dp.toPx() })
-    Text(stringResource(R.string.starter_hello_body), textAlign = TextAlign.Center)
-    Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.starter_hello_continue)) }
+    Box(contentAlignment = Alignment.Center) {
+        GroundedGlow(modifier = Modifier.size(200.dp))
+        TomoArt(
+            greeting.species,
+            size = 160.dp,
+            pose = TomoPose.EXCITED,
+            modifier = Modifier.graphicsLayer { translationY = offsetY.value.dp.toPx() },
+        )
+    }
+    Text(
+        text = stringResource(R.string.starter_hello_body),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+    PrimaryButton(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.starter_hello_continue))
+    }
 }
 
 private const val HELLO_HOPS = 3
@@ -227,7 +284,7 @@ private const val HELLO_PAUSE_MILLIS = 1_800L
 @Composable
 private fun LoadFailed(error: StarterError?, onRetry: () -> Unit) {
     error?.let { ErrorText(it) }
-    OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+    SecondaryButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
 }
 
 @Composable

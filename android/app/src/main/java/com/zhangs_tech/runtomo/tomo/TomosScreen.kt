@@ -1,25 +1,29 @@
 package com.zhangs_tech.runtomo.tomo
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +36,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +54,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zhangs_tech.runtomo.R
+import com.zhangs_tech.runtomo.summon.EggArt
+import com.zhangs_tech.runtomo.ui.components.PrimaryButton
+import com.zhangs_tech.runtomo.ui.components.RuntomoCard
+import com.zhangs_tech.runtomo.ui.components.RuntomoFilterChip
+import com.zhangs_tech.runtomo.ui.components.SecondaryButton
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 
 @Composable
@@ -91,8 +108,7 @@ fun TomosContent(uiState: TomosUiState, actions: TomosActions, modifier: Modifie
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.tomos_title)) },
-                actions = { TextButton(onClick = actions.onOpenSummon) { Text(stringResource(R.string.summon)) } },
+                title = { Text(stringResource(R.string.tomos_title), style = MaterialTheme.typography.headlineSmall) },
             )
         },
     ) { innerPadding ->
@@ -107,7 +123,7 @@ fun TomosContent(uiState: TomosUiState, actions: TomosActions, modifier: Modifie
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(stringResource(R.string.error_no_connection), textAlign = TextAlign.Center)
-                    OutlinedButton(onClick = actions.onRetry) { Text(stringResource(R.string.retry)) }
+                    SecondaryButton(onClick = actions.onRetry) { Text(stringResource(R.string.retry)) }
                 }
             }
         }
@@ -132,6 +148,9 @@ private fun CollectionGrid(collection: TomoCollection, uiState: TomosUiState, ac
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
+            SummonCard(onSummon = actions.onOpenSummon)
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(R.string.tomos_collected, collection.collectedCount, collection.totalCount),
@@ -139,10 +158,10 @@ private fun CollectionGrid(collection: TomoCollection, uiState: TomosUiState, ac
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SortOrder.entries.forEach { order ->
-                        FilterChip(
+                        RuntomoFilterChip(
                             selected = uiState.sortOrder == order,
                             onClick = { actions.onSortOrderChange(order) },
-                            label = { Text(stringResource(order.labelRes)) },
+                            label = stringResource(order.labelRes),
                         )
                     }
                 }
@@ -156,29 +175,89 @@ private fun CollectionGrid(collection: TomoCollection, uiState: TomosUiState, ac
     }
 }
 
+/** UC-12 entry point. Summoning is a main feature, so it gets a card, not a top bar link. */
+@Composable
+private fun SummonCard(onSummon: () -> Unit) {
+    RuntomoCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            EggArt(modifier = Modifier.size(width = 56.dp, height = 70.dp))
+            Text(
+                text = stringResource(R.string.summon_card_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            PrimaryButton(onClick = onSummon) {
+                Icon(painterResource(R.drawable.ic_egg), contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.summon))
+            }
+        }
+    }
+}
+
 @Composable
 private fun CollectionCell(entry: CollectionEntry, isEquipped: Boolean, onClick: () -> Unit) {
+    val tomo = entry.tomo
+    val colors = MaterialTheme.colorScheme
+    val shape = MaterialTheme.shapes.medium
+    val tile = if (tomo != null) {
+        Modifier
+            .background(colors.surfaceContainerLowest, shape)
+            .border(1.5.dp, if (isEquipped) colors.primary else colors.outlineVariant, shape)
+    } else {
+        Modifier.dashedBorder(colors.outline, shape)
+    }
     Column(
-        modifier = Modifier.clickable(onClickLabel = entry.tomo?.nickname, role = Role.Button, onClick = onClick),
+        modifier = Modifier
+            .clip(shape)
+            .then(tile)
+            .clickable(onClickLabel = tomo?.nickname, role = Role.Button, onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        val tomo = entry.tomo
         if (tomo != null) {
-            TomoArt(entry.species, size = 88.dp)
+            TomoArt(entry.species, size = 80.dp)
             Text(tomo.nickname, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
-            if (isEquipped) {
-                Text(
-                    text = stringResource(R.string.equipped),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+            Box(modifier = Modifier.height(BadgeHeight)) {
+                if (isEquipped) {
+                    Text(
+                        text = stringResource(R.string.equipped),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.primary,
+                    )
+                }
             }
         } else {
-            SpeciesSilhouette(entry.species, size = 88.dp)
-            Text(stringResource(R.string.unknown_species), style = MaterialTheme.typography.titleSmall)
+            SpeciesSilhouette(entry.species, size = 80.dp)
+            Text(
+                text = stringResource(R.string.unknown_species),
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(BadgeHeight))
         }
     }
+}
+
+private val BadgeHeight = 16.dp
+
+private fun Modifier.dashedBorder(color: Color, shape: Shape): Modifier = drawBehind {
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val stroke = Stroke(
+        width = 1.5.dp.toPx(),
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx())),
+    )
+    drawOutline(outline, color, style = stroke)
 }
 
 @Composable
@@ -189,14 +268,14 @@ private fun OwnedDialog(tomo: Tomo, isEquipped: Boolean, uiState: TomosUiState, 
     }
     TomoProfileDialog(tomo, onDismiss = actions.onDismiss) {
         uiState.error?.let { ErrorText(it) }
-        Button(
+        PrimaryButton(
             onClick = { actions.onEquip(tomo.id) },
             enabled = !isEquipped && !uiState.isSaving,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(if (isEquipped) R.string.equipped else R.string.equip))
         }
-        OutlinedButton(onClick = actions.onStartRename, modifier = Modifier.fillMaxWidth()) {
+        SecondaryButton(onClick = actions.onStartRename, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.rename))
         }
         TextButton(onClick = actions.onDismiss) { Text(stringResource(R.string.close)) }

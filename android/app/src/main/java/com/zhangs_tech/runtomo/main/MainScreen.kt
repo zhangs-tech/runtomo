@@ -26,11 +26,11 @@ import com.zhangs_tech.runtomo.home.HomeScreen
 import com.zhangs_tech.runtomo.social.SocialScreen
 import com.zhangs_tech.runtomo.tomo.TomosScreen
 
-enum class Tab(@StringRes val labelRes: Int, @DrawableRes val iconRes: Int) {
-    HOME(R.string.tab_home, R.drawable.ic_home),
-    TOMOS(R.string.tab_tomos, R.drawable.ic_tomos),
-    HISTORY(R.string.tab_history, R.drawable.ic_history),
-    SOCIAL(R.string.tab_social, R.drawable.ic_social),
+enum class Tab(@StringRes val labelRes: Int, @DrawableRes val iconRes: Int, @DrawableRes val selectedIconRes: Int) {
+    HOME(R.string.tab_home, R.drawable.ic_home, R.drawable.ic_home_filled),
+    TOMOS(R.string.tab_tomos, R.drawable.ic_tomos, R.drawable.ic_tomos_filled),
+    HISTORY(R.string.tab_history, R.drawable.ic_history, R.drawable.ic_history),
+    SOCIAL(R.string.tab_social, R.drawable.ic_social, R.drawable.ic_social_filled),
 }
 
 /** The signed-in app: Home, Tomos, History and Social tabs. Back on another tab returns to Home. */
@@ -44,10 +44,16 @@ fun MainScreen(onOpenSummon: () -> Unit, onOpenFeed: () -> Unit, modifier: Modif
         bottomBar = {
             NavigationBar {
                 Tab.entries.forEach { tab ->
+                    val selected = tab == selectedTab
                     NavigationBarItem(
-                        selected = tab == selectedTab,
+                        selected = selected,
                         onClick = { selectedTab = tab },
-                        icon = { Icon(painterResource(tab.iconRes), contentDescription = null) },
+                        icon = {
+                            Icon(
+                                painterResource(if (selected) tab.selectedIconRes else tab.iconRes),
+                                contentDescription = null,
+                            )
+                        },
                         label = { Text(stringResource(tab.labelRes)) },
                     )
                 }

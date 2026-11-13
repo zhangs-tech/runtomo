@@ -22,14 +22,14 @@
     <string name="starter_hello">Hi! I\'m %1$s!</string>
     <string name="starter_hello_body">Every step we take together counts. Let\'s go!</string>
     <string name="starter_hello_continue">Let\'s go!</string>
-    <string name="home_title">Home</string>
+    <string name="wordmark" translatable="false">RunTomo</string>
     <string name="more_options">More options</string>
     <string name="offline_label">Offline</string>
     <string name="coin_balance">%1$s TomoCoins</string>
     <string name="mood_excited">Excited</string>
     <string name="mood_happy">Happy</string>
     <string name="mood_relaxed">Relaxed</string>
-    <string name="tomo_status">%1$s · Bond Lv %2$d</string>
+    <string name="bond_level_short">Bond Lv %1$d</string>
     <string name="missed_you">%1$s missed you! Let\'s go for a walk together.</string>
     <string name="dismiss">Dismiss</string>
     <string name="today_steps">%1$s steps today</string>
@@ -42,11 +42,11 @@
     <string name="background_note">RunTomo counts your steps only when you open the app. Allow background reading in Health Connect to sync while the app is closed.</string>
     <string name="quests_title">Daily quests</string>
     <string name="quest_reward">+%1$d TomoCoins</string>
+    <string name="quest_reward_short">+%1$d</string>
     <string name="quest_claim">Claim</string>
     <string name="quest_claimed">Claimed</string>
     <string name="rewards_walked">%1$s walked %2$s km with you!</string>
     <string name="rewards_you_walked">You walked %1$s km!</string>
-    <string name="rewards_earned">+%1$d Bond · +%2$d TomoCoins</string>
     <string name="rewards_bond_only">+%1$d Bond</string>
     <string name="rewards_coin_cap">You reached today\'s TomoCoin limit. Your Tomo still gets Bond.</string>
     <string name="rewards_level_up">Bond Level %1$d!</string>
@@ -66,11 +66,10 @@
     <string name="rarity_rare">Rare</string>
     <string name="rarity_epic">Epic</string>
     <string name="rarity_legendary">Legendary</string>
-    <string name="profile_species">Species: %1$s</string>
-    <string name="profile_rarity">Rarity: %1$s</string>
-    <string name="profile_bond_level">Bond Level: %1$d</string>
-    <string name="profile_distance_together">Distance together: %1$s km</string>
-    <string name="profile_birthday">Birthday: %1$s</string>
+    <string name="profile_species">Species</string>
+    <string name="profile_bond_level">Bond level</string>
+    <string name="profile_distance_together">Distance together</string>
+    <string name="profile_birthday">Birthday</string>
     <string name="close">Close</string>
     <string name="view_profile">View profile</string>
     <string name="tomos_title">Tomos</string>
@@ -86,6 +85,7 @@
     <string name="cancel">Cancel</string>
     <string name="not_owned_hint">Summon an egg to meet %1$s.</string>
     <string name="summon">Summon</string>
+    <string name="summon_card_title">Hatch a new Tomo</string>
     <string name="history_title">History</string>
     <string name="history_this_week">This week</string>
     <string name="history_this_month">This month</string>

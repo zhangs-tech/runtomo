@@ -1,58 +1,106 @@
 package com.zhangs_tech.runtomo.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+// Material 3 draws selected chips and the nav indicator with secondaryContainer, so the
+// secondary roles carry the ember tint. Moss (success) is tertiary.
+private val LightColorScheme = lightColorScheme(
+    primary = Ember,
+    onPrimary = Paper,
+    primaryContainer = EmberTint,
+    onPrimaryContainer = EmberDeep,
+    inversePrimary = EmberLight,
+    secondary = Bark,
+    onSecondary = Paper,
+    secondaryContainer = EmberTint,
+    onSecondaryContainer = EmberDeep,
+    tertiary = Moss,
+    onTertiary = Paper,
+    tertiaryContainer = MossTint,
+    onTertiaryContainer = MossDeep,
+    background = Paper,
+    onBackground = Ink,
+    surface = Paper,
+    onSurface = Ink,
+    surfaceVariant = PaperHigh,
+    onSurfaceVariant = InkSoft,
+    surfaceTint = Ember,
+    inverseSurface = Ink,
+    inverseOnSurface = Paper,
+    outline = InkFaint,
+    outlineVariant = PaperEdge,
+    surfaceBright = Paper,
+    surfaceDim = PaperHigh,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = PaperLow,
+    surfaceContainer = PaperSunk,
+    surfaceContainerHigh = PaperHigh,
+    surfaceContainerHighest = PaperEdge,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+// Cards use surfaceContainerLowest. In the dark scheme it is a lifted brown, not the darkest
+// color, so cards stand out from the background in both schemes.
+private val DarkColorScheme = darkColorScheme(
+    primary = EmberLight,
+    onPrimary = EmberDeep,
+    primaryContainer = EmberNightWash,
+    onPrimaryContainer = EmberTint,
+    inversePrimary = Ember,
+    secondary = BarkLight,
+    onSecondary = EmberDeep,
+    secondaryContainer = EmberNight,
+    onSecondaryContainer = EmberTint,
+    tertiary = MossLight,
+    onTertiary = MossDeep,
+    tertiaryContainer = MossNight,
+    onTertiaryContainer = MossTint,
+    errorContainer = ErrorNightWash,
+    onErrorContainer = ErrorNightInk,
+    background = Night,
+    onBackground = NightInk,
+    surface = Night,
+    onSurface = NightInk,
+    surfaceVariant = NightEdge,
+    onSurfaceVariant = NightInkSoft,
+    surfaceTint = EmberLight,
+    inverseSurface = NightInk,
+    inverseOnSurface = Ink,
+    outline = NightInkFaint,
+    outlineVariant = NightEdge,
+    surfaceBright = NightHigh,
+    surfaceDim = Night,
+    surfaceContainerLowest = NightCard,
+    surfaceContainerLow = NightLow,
+    surfaceContainer = NightSunk,
+    surfaceContainerHigh = NightHigh,
+    surfaceContainerHighest = NightEdge,
+)
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val RuntomoShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
 fun RuntomoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        shapes = RuntomoShapes,
+        content = content,
     )
 }

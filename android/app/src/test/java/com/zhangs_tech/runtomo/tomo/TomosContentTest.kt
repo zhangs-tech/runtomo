@@ -5,11 +5,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.zhangs_tech.runtomo.R
 import org.junit.Assert.assertEquals
@@ -41,6 +43,7 @@ class TomosContentTest {
         var selected: String? = null
         composeRule.setContent { TomosContent(loaded, TomosActions(onSelect = { selected = it })) }
 
+        composeRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Pebble"))
         composeRule.onNodeWithText("Pebble").performClick()
 
         assertEquals("rocky", selected)
@@ -50,7 +53,8 @@ class TomosContentTest {
     fun equippedTomoCard_disablesEquip() {
         composeRule.setContent { TomosContent(loaded.copy(selectedSpeciesCode = "luppy"), TomosActions()) }
 
-        composeRule.onNodeWithText(text(R.string.profile_bond_level, 1)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.profile_bond_level)).assertIsDisplayed()
+        composeRule.onNode(hasText("1") and hasAnyAncestor(isDialog())).assertIsDisplayed()
         composeRule.onNode(hasText(text(R.string.equipped)) and hasClickAction() and hasAnyAncestor(isDialog())).assertIsNotEnabled()
     }
 

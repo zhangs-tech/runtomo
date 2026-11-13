@@ -7,17 +7,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,8 +38,12 @@ import com.zhangs_tech.runtomo.tomo.Tomo
 import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.tomo.TomoProfileDialog
 import com.zhangs_tech.runtomo.tomo.pose
-import kotlinx.coroutines.delay
+import com.zhangs_tech.runtomo.ui.components.GroundedGlow
+import com.zhangs_tech.runtomo.ui.components.Pill
+import com.zhangs_tech.runtomo.ui.components.PrimaryButton
+import com.zhangs_tech.runtomo.ui.components.SecondaryButton
 import java.text.NumberFormat
+import kotlinx.coroutines.delay
 
 /** The equipped Tomo on the Home Screen. The Player can tap it (UC-09) or open its profile card. */
 @Composable
@@ -85,38 +88,45 @@ fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int, on
                 )
             }
         }
-        TomoArt(
-            species = tomo.species,
-            size = 200.dp,
-            pose = mood.pose,
-            modifier = Modifier
-                .graphicsLayer {
-                    scaleX = scale.value
-                    scaleY = scale.value
-                    rotationZ = rotation.value
-                }
-                .clickable(onClickLabel = tomo.nickname, role = Role.Button) {
-                    reaction = reactions.onTap(mood, todaySteps, speechBubbleOneIn)
-                    tapCount++
-                },
-        )
+        Box(contentAlignment = Alignment.Center) {
+            GroundedGlow(modifier = Modifier.size(240.dp))
+            TomoArt(
+                species = tomo.species,
+                size = 200.dp,
+                pose = mood.pose,
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                        rotationZ = rotation.value
+                    }
+                    .clickable(onClickLabel = tomo.nickname, role = Role.Button) {
+                        reaction = reactions.onTap(mood, todaySteps, speechBubbleOneIn)
+                        tapCount++
+                    },
+            )
+        }
         Text(tomo.nickname, style = MaterialTheme.typography.headlineMedium)
-        Text(
-            text = stringResource(R.string.tomo_status, stringResource(mood.labelRes), tomo.bondLevel),
-            style = MaterialTheme.typography.titleMedium,
-        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Pill(stringResource(mood.labelRes))
+            Pill(stringResource(R.string.bond_level_short, tomo.bondLevel))
+        }
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             // UC-18 needs the server, so Feed waits until the app is online.
-            FilledTonalButton(onClick = onFeed, enabled = canFeed) { Text(stringResource(R.string.feed)) }
-            TextButton(onClick = { showProfile = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.view_profile))
-            }
+            PrimaryButton(onClick = onFeed, enabled = canFeed) { Text(stringResource(R.string.feed)) }
+            SecondaryButton(onClick = { showProfile = true }) { Text(stringResource(R.string.view_profile)) }
         }
     }
 
     if (showProfile) {
         TomoProfileDialog(tomo, onDismiss = { showProfile = false }) {
-            TextButton(onClick = { showProfile = false }) { Text(stringResource(R.string.close)) }
+            SecondaryButton(onClick = { showProfile = false }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.close))
+            }
         }
     }
 }

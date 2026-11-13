@@ -3,29 +3,27 @@ package com.zhangs_tech.runtomo.home
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -42,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +54,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zhangs_tech.runtomo.R
-import com.zhangs_tech.runtomo.core.formatKm
 import com.zhangs_tech.runtomo.quest.Quest
 import com.zhangs_tech.runtomo.quest.QuestMetric
 import com.zhangs_tech.runtomo.quest.QuestStatus
@@ -63,6 +61,14 @@ import com.zhangs_tech.runtomo.tomo.Mood
 import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.Tomo
+import com.zhangs_tech.runtomo.ui.components.CoinAmount
+import com.zhangs_tech.runtomo.ui.components.CoinBalanceChip
+import com.zhangs_tech.runtomo.ui.components.CompactButton
+import com.zhangs_tech.runtomo.ui.components.GrowingProgressBar
+import com.zhangs_tech.runtomo.ui.components.PrimaryButton
+import com.zhangs_tech.runtomo.ui.components.RuntomoCard
+import com.zhangs_tech.runtomo.ui.components.SecondaryButton
+import com.zhangs_tech.runtomo.ui.components.SunBrush
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 import java.text.NumberFormat
 
@@ -127,13 +133,17 @@ fun HomeContent(uiState: HomeUiState, actions: HomeActions, modifier: Modifier =
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.home_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.wordmark),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 actions = {
                     uiState.home?.let {
-                        Text(
-                            text = stringResource(R.string.coin_balance, NumberFormat.getInstance().format(it.coinBalance)),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
+                        val coins = NumberFormat.getInstance().format(it.coinBalance)
+                        CoinBalanceChip(text = coins, description = stringResource(R.string.coin_balance, coins))
                     }
                     OverflowMenu(onSignOut = actions.onSignOut)
                 },
@@ -185,7 +195,7 @@ private fun HomeBody(home: HomeData, uiState: HomeUiState, actions: HomeActions)
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (uiState.isOffline) {
@@ -195,7 +205,7 @@ private fun HomeBody(home: HomeData, uiState: HomeUiState, actions: HomeActions)
             if (uiState.showMissedYou) MissedYouCard(tomo.nickname, actions.onDismissMissedYou)
             TomoCard(tomo, home.mood, home.today.steps, home.speechBubbleOneIn, onFeed = actions.onFeed, canFeed = !uiState.isOffline)
         }
-        TodayCard(home)
+        TrailCard(home)
         when (uiState.stepsAccess) {
             StepsAccess.NotGranted, StepsAccess.Refused -> StepsAccessCard(uiState.stepsAccess, actions)
             StepsAccess.Granted -> if (!uiState.canReadInBackground) BackgroundNoteCard(actions.onOpenHealthConnect)
@@ -207,47 +217,38 @@ private fun HomeBody(home: HomeData, uiState: HomeUiState, actions: HomeActions)
 
 @Composable
 private fun MissedYouCard(nickname: String, onDismiss: () -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+    RuntomoCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        borderColor = MaterialTheme.colorScheme.tertiaryContainer,
+    ) {
         Row(
             modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(stringResource(R.string.missed_you, nickname), modifier = Modifier.weight(1f))
+            Text(
+                text = stringResource(R.string.missed_you, nickname),
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.dismiss)) }
         }
     }
 }
 
 @Composable
-private fun TodayCard(home: HomeData) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(R.string.today_distance, formatKm(home.today.distanceM), formatKm(home.dailyGoalM)),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            LinearProgressIndicator(
-                progress = { (home.today.distanceM.toFloat() / home.dailyGoalM).coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(stringResource(R.string.today_steps, NumberFormat.getInstance().format(home.today.steps)))
-        }
-    }
-}
-
-@Composable
 private fun StepsAccessCard(stepsAccess: StepsAccess, actions: HomeActions) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    RuntomoCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.steps_access_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.steps_access_body))
             if (stepsAccess == StepsAccess.Refused) {
                 Text(stringResource(R.string.steps_access_refused))
-                OutlinedButton(onClick = actions.onOpenHealthConnect) {
+                SecondaryButton(onClick = actions.onOpenHealthConnect) {
                     Text(stringResource(R.string.open_health_connect))
                 }
             } else {
-                Button(onClick = actions.onAllowSteps) { Text(stringResource(R.string.steps_access_allow)) }
+                PrimaryButton(onClick = actions.onAllowSteps) { Text(stringResource(R.string.steps_access_allow)) }
             }
         }
     }
@@ -255,8 +256,8 @@ private fun StepsAccessCard(stepsAccess: StepsAccess, actions: HomeActions) {
 
 @Composable
 private fun BackgroundNoteCard(onOpenHealthConnect: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    RuntomoCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.background_note))
             TextButton(onClick = onOpenHealthConnect) { Text(stringResource(R.string.open_health_connect)) }
         }
@@ -265,9 +266,9 @@ private fun BackgroundNoteCard(onOpenHealthConnect: () -> Unit) {
 
 @Composable
 private fun QuestsCard(quests: List<Quest>, claimingQuestCode: String?, isOffline: Boolean, onClaim: (String) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.quests_title), style = MaterialTheme.typography.titleMedium)
+    RuntomoCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(stringResource(R.string.quests_title), style = MaterialTheme.typography.titleLarge)
             quests.forEach { quest ->
                 QuestRow(quest, isClaiming = quest.code == claimingQuestCode, canClaim = !isOffline, onClaim = onClaim)
             }
@@ -277,30 +278,67 @@ private fun QuestsCard(quests: List<Quest>, claimingQuestCode: String?, isOfflin
 
 @Composable
 private fun QuestRow(quest: Quest, isClaiming: Boolean, canClaim: Boolean, onClaim: (String) -> Unit) {
+    val claimed = quest.status == QuestStatus.CLAIMED
+    val ready = quest.status != QuestStatus.IN_PROGRESS
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(quest.title)
-            LinearProgressIndicator(
-                progress = { (quest.progress.toFloat() / quest.target).coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                text = stringResource(R.string.quest_reward, quest.reward),
-                style = MaterialTheme.typography.bodySmall,
-            )
+        QuestBadge(quest.metric, claimed)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(quest.title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                CoinAmount(
+                    text = stringResource(R.string.quest_reward_short, quest.reward),
+                    description = stringResource(R.string.quest_reward, quest.reward),
+                    style = MaterialTheme.typography.labelMedium,
+                    iconSize = 16.dp,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                GrowingProgressBar(
+                    progress = quest.progress.toFloat() / quest.target,
+                    modifier = Modifier.weight(1f),
+                    height = 8.dp,
+                    brush = if (ready) SolidColor(MaterialTheme.colorScheme.tertiary) else SunBrush,
+                )
+                when (quest.status) {
+                    QuestStatus.CLAIMED -> Text(
+                        text = stringResource(R.string.quest_claimed),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        textAlign = TextAlign.Center,
+                    )
+                    QuestStatus.CLAIMABLE -> CompactButton(
+                        onClick = { onClaim(quest.code) },
+                        enabled = canClaim && !isClaiming,
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    ) { Text(stringResource(R.string.quest_claim)) }
+                    QuestStatus.IN_PROGRESS -> Unit
+                }
+            }
         }
-        when (quest.status) {
-            QuestStatus.CLAIMED -> Text(
-                text = stringResource(R.string.quest_claimed),
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Center,
-            )
-            QuestStatus.CLAIMABLE -> FilledTonalButton(
-                onClick = { onClaim(quest.code) },
-                enabled = canClaim && !isClaiming,
-            ) { Text(stringResource(R.string.quest_claim)) }
-            QuestStatus.IN_PROGRESS -> Unit
-        }
+    }
+}
+
+@Composable
+private fun QuestBadge(metric: QuestMetric, claimed: Boolean) {
+    val colors = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .background(if (claimed) colors.tertiaryContainer else colors.surfaceContainer, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(
+                when {
+                    claimed -> R.drawable.ic_check_circle
+                    metric == QuestMetric.DISTANCE -> R.drawable.ic_walk
+                    else -> R.drawable.ic_footprint
+                },
+            ),
+            contentDescription = null,
+            modifier = Modifier.size(22.dp),
+            tint = if (claimed) colors.tertiary else colors.primary,
+        )
     }
 }
 
@@ -312,7 +350,7 @@ private fun LoadFailed(error: HomeError?, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(stringResource(error?.messageRes ?: R.string.error_generic), textAlign = TextAlign.Center)
-        OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+        SecondaryButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
     }
 }
 

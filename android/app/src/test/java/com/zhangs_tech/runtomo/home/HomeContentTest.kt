@@ -3,6 +3,7 @@ package com.zhangs_tech.runtomo.home
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -39,8 +40,8 @@ class HomeContentTest {
         setContent(HomeUiState(isLoading = false, home = home, stepsAccess = StepsAccess.Granted))
 
         composeRule.onNodeWithText("Mochi").assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.today_distance, "2.8", "5.0")).assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.coin_balance, "0")).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.today_distance, "2.8", "5.0")).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(text(R.string.coin_balance, "0")).assertIsDisplayed()
     }
 
     @Test
@@ -99,7 +100,8 @@ class HomeContentTest {
         )
 
         composeRule.onNodeWithText(text(R.string.rewards_walked, "Mochi", "1.2")).assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.rewards_earned, 12, 120)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.rewards_bond_only, 12)).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(text(R.string.quest_reward, 120)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.done)).performClick()
         assertEquals(1, dismissed)
     }

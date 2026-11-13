@@ -107,7 +107,7 @@ class RuntomoNavDisplayTest {
         composeRule.setContent { RuntomoNavDisplay(SessionState.Loading) }
 
         composeRule.onNodeWithText(text(R.string.welcome_title)).assertDoesNotExist()
-        composeRule.onNodeWithText(text(R.string.home_title)).assertDoesNotExist()
+        composeRule.onNodeWithText(text(R.string.wordmark)).assertDoesNotExist()
     }
 
     @Test
