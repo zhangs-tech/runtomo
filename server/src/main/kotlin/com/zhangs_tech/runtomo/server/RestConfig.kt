@@ -30,6 +30,8 @@ public class RestConfig(
                 authorize("/auth/signin", permitAll)
                 authorize("/auth/refresh", permitAll)
                 authorize("/auth/signout", permitAll)
+                authorize("/livez", permitAll)
+                authorize("/readyz", permitAll)
                 authorize(anyRequest, authenticated)
             }
             csrf { disable() }

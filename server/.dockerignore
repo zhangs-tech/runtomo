@@ -1,0 +1,12 @@
+# Secrets must never go into the image.
+.env
+keys/
+*.key
+*.pub
+
+.gradle/
+.kotlin/
+.idea/
+build/
+HELP.md
+compose.yml
