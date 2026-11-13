@@ -10,7 +10,9 @@ plugins {
 }
 
 val localProperties = Properties().apply {
-    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
+    listOf("local.properties", "secrets.properties").forEach { filename ->
+        rootProject.file(filename).takeIf { it.exists() }?.inputStream()?.use(::load)
+    }
 }
 
 android {
