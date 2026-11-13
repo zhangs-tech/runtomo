@@ -8,28 +8,19 @@ class MoodRulesTests {
     private val rules = MoodRules(testGameData)
 
     @Test
-    fun `night is sleepy before any other rule`() {
-        assertEquals(Mood.SLEEPY, rules.pick(23, 9000, 0))
-        assertEquals(Mood.SLEEPY, rules.pick(5, 9000, 0))
-    }
-
-    @Test
-    fun `daily goal is excited`() {
-        assertEquals(Mood.EXCITED, rules.pick(6, 5000, 0))
+    fun `reaching the daily goal is excited`() {
+        assertEquals(Mood.EXCITED, rules.pick(5000))
     }
 
     @Test
     fun `1 km today is happy`() {
-        assertEquals(Mood.HAPPY, rules.pick(12, 1000, 0))
+        assertEquals(Mood.HAPPY, rules.pick(1000))
+        assertEquals(Mood.HAPPY, rules.pick(4999))
     }
 
     @Test
-    fun `1 km yesterday is relaxed`() {
-        assertEquals(Mood.RELAXED, rules.pick(12, 999, 1000))
-    }
-
-    @Test
-    fun `otherwise bored`() {
-        assertEquals(Mood.BORED, rules.pick(22, 0, 0))
+    fun `under 1 km today is relaxed`() {
+        assertEquals(Mood.RELAXED, rules.pick(0))
+        assertEquals(Mood.RELAXED, rules.pick(999))
     }
 }

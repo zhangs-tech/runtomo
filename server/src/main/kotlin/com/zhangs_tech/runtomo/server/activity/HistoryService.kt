@@ -4,9 +4,7 @@ import com.zhangs_tech.runtomo.server.game.GameCalendar
 import com.zhangs_tech.runtomo.server.game.GameData
 import com.zhangs_tech.runtomo.server.quest.QuestClaimRepository
 import org.springframework.stereotype.Service
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 data class PeriodTotals(val week: ActivityTotal, val month: ActivityTotal)
@@ -27,10 +25,9 @@ class HistoryService(
     /** BR-2: weeks run Monday to Sunday, and months by calendar month, in UTC+7. */
     fun totals(userId: UUID): PeriodTotals {
         val today = gameCalendar.today()
-        val weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         return PeriodTotals(
-            week = dailyStatsRepository.sum(userId, weekStart, today),
-            month = dailyStatsRepository.sum(userId, today.withDayOfMonth(1), today),
+            week = dailyStatsRepository.sum(userId, gameCalendar.startOfWeek(today), today),
+            month = dailyStatsRepository.sum(userId, gameCalendar.startOfMonth(today), today),
         )
     }
 

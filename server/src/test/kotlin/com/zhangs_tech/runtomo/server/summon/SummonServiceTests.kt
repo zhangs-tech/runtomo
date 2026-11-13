@@ -2,7 +2,9 @@ package com.zhangs_tech.runtomo.server.summon
 
 import com.zhangs_tech.runtomo.server.coin.CoinReason
 import com.zhangs_tech.runtomo.server.coin.InMemoryCoinRepository
+import com.zhangs_tech.runtomo.server.coin.NotEnoughCoinsException
 import com.zhangs_tech.runtomo.server.game.GameCalendar
+import com.zhangs_tech.runtomo.server.game.RewardRules
 import com.zhangs_tech.runtomo.server.game.testDaytimeClock
 import com.zhangs_tech.runtomo.server.game.testGameData
 import com.zhangs_tech.runtomo.server.tomo.InMemoryTomoRepository
@@ -28,6 +30,7 @@ class SummonServiceTests {
         testGameData,
         GameCalendar(testDaytimeClock),
         SummonRoller(FixedRandom(*rolls)),
+        RewardRules(testGameData),
         userRepository,
         tomoRepository,
         coinRepository,
@@ -85,7 +88,7 @@ class SummonServiceTests {
         val random = FixedRandom(950)
 
         val result = SummonService(
-            testGameData, GameCalendar(testDaytimeClock), SummonRoller(random),
+            testGameData, GameCalendar(testDaytimeClock), SummonRoller(random), RewardRules(testGameData),
             userRepository, tomoRepository, coinRepository, summonRepository, pityRepository,
         ).summon(user.id, "standard")
 

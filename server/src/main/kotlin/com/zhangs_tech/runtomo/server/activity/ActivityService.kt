@@ -5,7 +5,6 @@ import com.zhangs_tech.runtomo.server.coin.CoinRepository
 import com.zhangs_tech.runtomo.server.game.GameCalendar
 import com.zhangs_tech.runtomo.server.game.GameData
 import com.zhangs_tech.runtomo.server.game.RewardRules
-import com.zhangs_tech.runtomo.server.tomo.Mood
 import com.zhangs_tech.runtomo.server.tomo.MoodRules
 import com.zhangs_tech.runtomo.server.tomo.TomoRepository
 import com.zhangs_tech.runtomo.server.user.UserNotFoundException
@@ -40,7 +39,7 @@ class ActivityService(
         if (steps <= before.steps) {
             dailyStatsRepository.save(before)
             val user = userRepository.findById(userId) ?: throw UserNotFoundException()
-            return SyncResult(before, user.coinBalance, currentMood(userId, before.distanceM), rewards = null)
+            return SyncResult(before, user.coinBalance, moodRules.pick(before.distanceM), rewards = null)
         }
 
         val distanceM = rewardRules.distanceM(steps)
@@ -86,13 +85,7 @@ class ActivityService(
             showRewardScreen = newDistanceM >= gameData.tunables.rewardScreenMinDistanceM ||
                 levelUp || completedQuests.isNotEmpty(),
         )
-        return SyncResult(after, coinBalance, currentMood(userId, distanceM), rewards)
+        return SyncResult(after, coinBalance, moodRules.pick(distanceM), rewards)
     }
 
-    /** UC-10. A day with no row counts as 0 km. */
-    fun currentMood(userId: UUID, todayDistanceM: Int): Mood {
-        val yesterday = gameCalendar.today().minusDays(1)
-        val yesterdayDistanceM = dailyStatsRepository.find(userId, yesterday)?.distanceM ?: 0
-        return moodRules.pick(gameCalendar.now().hour, todayDistanceM, yesterdayDistanceM)
-    }
 }

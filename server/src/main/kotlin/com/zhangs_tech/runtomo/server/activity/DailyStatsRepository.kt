@@ -17,6 +17,9 @@ interface DailyStatsRepository {
     /** Sums steps and distance from [from] to [to], both included. */
     fun sum(userId: UUID, from: LocalDate, to: LocalDate): ActivityTotal
 
+    /** Distance from [from] to [to], both included, for each of [userIds]. Users without days are missing. */
+    fun sumDistanceByUser(userIds: Collection<UUID>, from: LocalDate, to: LocalDate): Map<UUID, Long>
+
     /** Up to [limit] days before [before] (or all days if null), newest first. */
     fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats>
 

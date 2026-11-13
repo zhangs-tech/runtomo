@@ -25,4 +25,7 @@ class RewardRules(gameData: GameData) {
     fun bondFor(distanceM: Int): Int = (distanceM.toLong() * tunables.bondPerKm / 1000).toInt()
 
     fun bondLevel(bondPoints: Int): Int = tunables.bondLevelThresholds.count { bondPoints >= it }
+
+    /** About how far the Player must walk to earn [coins], at the first tier's rate. */
+    fun distanceToEarnM(coins: Long): Long = coins * 1000 / tunables.coinTiers.first().coinsPerKm
 }

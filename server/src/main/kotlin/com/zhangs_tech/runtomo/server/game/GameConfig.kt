@@ -10,7 +10,7 @@ import java.time.Clock
 class GameConfig {
     @Bean
     fun gameData(properties: GameProperties) =
-        GameData(properties.species, properties.tunables, properties.quests, properties.banners)
+        GameData(properties.species, properties.tunables, properties.quests, properties.banners, properties.foods)
 
     @Bean
     fun clock(): Clock = Clock.systemUTC()

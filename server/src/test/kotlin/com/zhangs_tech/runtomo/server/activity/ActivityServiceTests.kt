@@ -117,11 +117,4 @@ class ActivityServiceTests {
         assertThrows<InvalidStepsException> { service.sync(user.id, today, steps = -1) }
         assertThrows<InvalidStepsException> { service.sync(user.id, today, steps = 100_001) }
     }
-
-    @Test
-    fun `mood uses yesterday when today is quiet`() {
-        dailyStatsRepository.save(DailyStats(user.id, today.minusDays(1), steps = 2000, distanceM = 1500))
-
-        assertEquals(Mood.RELAXED, service.currentMood(user.id, todayDistanceM = 0))
-    }
 }

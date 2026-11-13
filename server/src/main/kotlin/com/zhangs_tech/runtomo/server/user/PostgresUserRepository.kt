@@ -25,6 +25,14 @@ class PostgresUserRepository(private val jdbcClient: JdbcClient) : UserRepositor
             .optional()
             .orElse(null)
 
+    override fun findByFriendCode(friendCode: String): User? =
+        jdbcClient
+            .sql("SELECT $USER_COLUMNS FROM users WHERE friend_code = :friendCode")
+            .param("friendCode", friendCode)
+            .query(USER_ROW_MAPPER)
+            .optional()
+            .orElse(null)
+
     override fun create(authSubject: String, displayName: String, friendCode: String): User? =
         jdbcClient
             .sql(

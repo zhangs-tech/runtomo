@@ -78,6 +78,24 @@ class PostgresDailyStatsRepository(private val jdbcClient: JdbcClient) : DailySt
             .query { rs, _ -> ActivityTotal(rs.getLong("steps"), rs.getLong("distance_m")) }
             .single()
 
+    override fun sumDistanceByUser(userIds: Collection<UUID>, from: LocalDate, to: LocalDate): Map<UUID, Long> {
+        if (userIds.isEmpty()) return emptyMap()
+        return jdbcClient
+            .sql(
+                """
+                SELECT user_id, sum(distance_m) AS distance_m FROM daily_stats
+                WHERE user_id IN (:userIds) AND local_date BETWEEN :from AND :to
+                GROUP BY user_id
+                """.trimIndent()
+            )
+            .param("userIds", userIds)
+            .param("from", from)
+            .param("to", to)
+            .query { rs, _ -> rs.getObject("user_id", UUID::class.java) to rs.getLong("distance_m") }
+            .list()
+            .toMap()
+    }
+
     override fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats> =
         jdbcClient
             .sql(

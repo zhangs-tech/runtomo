@@ -8,6 +8,7 @@ import com.zhangs_tech.runtomo.server.activity.InMemoryDailyStatsRepository
 import com.zhangs_tech.runtomo.server.coin.CoinReason
 import com.zhangs_tech.runtomo.server.coin.InMemoryCoinRepository
 import com.zhangs_tech.runtomo.server.game.GameCalendar
+import com.zhangs_tech.runtomo.server.game.RewardRules
 import com.zhangs_tech.runtomo.server.game.testDaytimeClock
 import com.zhangs_tech.runtomo.server.game.testGameData
 import com.zhangs_tech.runtomo.server.quest.InMemoryQuestClaimRepository
@@ -54,6 +55,7 @@ class CollectionControllerTests(
         @Bean fun gameData() = testGameData
         @Bean fun gameCalendar() = GameCalendar(testDaytimeClock)
         @Bean fun summonRoller() = SummonRoller(FixedRandom(*IntArray(10)))
+        @Bean fun rewardRules() = RewardRules(testGameData)
         @Bean fun userRepository() = InMemoryUserRepository()
         @Bean fun tomoRepository() = InMemoryTomoRepository()
         @Bean fun coinRepository(users: InMemoryUserRepository) = InMemoryCoinRepository(users)

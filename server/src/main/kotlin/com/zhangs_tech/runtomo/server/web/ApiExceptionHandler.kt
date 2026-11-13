@@ -4,11 +4,20 @@ import com.zhangs_tech.runtomo.server.activity.DayClosedException
 import com.zhangs_tech.runtomo.server.activity.InvalidStepsException
 import com.zhangs_tech.runtomo.server.auth.InvalidIdTokenException
 import com.zhangs_tech.runtomo.server.auth.InvalidRefreshTokenException
+import com.zhangs_tech.runtomo.server.food.FeedingLimitException
+import com.zhangs_tech.runtomo.server.food.FoodNotFoundException
+import com.zhangs_tech.runtomo.server.food.NoFoodLeftException
 import com.zhangs_tech.runtomo.server.quest.QuestAlreadyClaimedException
+import com.zhangs_tech.runtomo.server.social.AlreadyFriendsException
+import com.zhangs_tech.runtomo.server.social.FriendLimitException
+import com.zhangs_tech.runtomo.server.social.FriendRequestNotFoundException
+import com.zhangs_tech.runtomo.server.social.InvalidPeriodException
+import com.zhangs_tech.runtomo.server.social.OwnFriendCodeException
+import com.zhangs_tech.runtomo.server.social.PlayerNotFoundException
 import com.zhangs_tech.runtomo.server.quest.QuestNotCompleteException
 import com.zhangs_tech.runtomo.server.quest.QuestNotFoundException
 import com.zhangs_tech.runtomo.server.summon.BannerNotFoundException
-import com.zhangs_tech.runtomo.server.summon.NotEnoughCoinsException
+import com.zhangs_tech.runtomo.server.coin.NotEnoughCoinsException
 import com.zhangs_tech.runtomo.server.tomo.InvalidNicknameException
 import com.zhangs_tech.runtomo.server.tomo.NotAStarterException
 import com.zhangs_tech.runtomo.server.tomo.StarterAlreadyChosenException
@@ -37,11 +46,19 @@ class ApiExceptionHandler {
         InvalidNicknameException::class,
         NotAStarterException::class,
         InvalidStepsException::class,
+        InvalidPeriodException::class,
     )
     fun handleBadRequest(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
 
-    @ExceptionHandler(QuestNotFoundException::class, TomoNotFoundException::class, BannerNotFoundException::class)
+    @ExceptionHandler(
+        QuestNotFoundException::class,
+        TomoNotFoundException::class,
+        BannerNotFoundException::class,
+        FoodNotFoundException::class,
+        PlayerNotFoundException::class,
+        FriendRequestNotFoundException::class,
+    )
     fun handleNotFound(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message)
 
@@ -59,11 +76,30 @@ class ApiExceptionHandler {
             setProperty("distanceNeededM", e.distanceNeededM)
         }
 
+    @ExceptionHandler(OwnFriendCodeException::class)
+    fun handleOwnFriendCode(e: OwnFriendCodeException): ProblemDetail = conflict(e, "/problems/own-friend-code")
+
+    @ExceptionHandler(AlreadyFriendsException::class)
+    fun handleAlreadyFriends(e: AlreadyFriendsException): ProblemDetail = conflict(e, "/problems/already-friends")
+
+    @ExceptionHandler(FriendLimitException::class)
+    fun handleFriendLimit(e: FriendLimitException): ProblemDetail = conflict(e, "/problems/friend-limit")
+
+    @ExceptionHandler(FeedingLimitException::class)
+    fun handleFeedingLimit(e: FeedingLimitException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message).apply {
+            type = URI.create("/problems/feeding-limit")
+        }
+
     @ExceptionHandler(
+        NoFoodLeftException::class,
         StarterAlreadyChosenException::class,
         QuestNotCompleteException::class,
         QuestAlreadyClaimedException::class,
     )
     fun handleConflict(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message)
+
+    private fun conflict(e: RuntimeException, type: String): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message).apply { this.type = URI.create(type) }
 }

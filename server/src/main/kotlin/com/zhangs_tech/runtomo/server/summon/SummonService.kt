@@ -2,9 +2,11 @@ package com.zhangs_tech.runtomo.server.summon
 
 import com.zhangs_tech.runtomo.server.coin.CoinReason
 import com.zhangs_tech.runtomo.server.coin.CoinRepository
+import com.zhangs_tech.runtomo.server.coin.NotEnoughCoinsException
 import com.zhangs_tech.runtomo.server.game.Banner
 import com.zhangs_tech.runtomo.server.game.GameCalendar
 import com.zhangs_tech.runtomo.server.game.GameData
+import com.zhangs_tech.runtomo.server.game.RewardRules
 import com.zhangs_tech.runtomo.server.game.Species
 import com.zhangs_tech.runtomo.server.tomo.Tomo
 import com.zhangs_tech.runtomo.server.tomo.TomoRepository
@@ -37,6 +39,7 @@ class SummonService(
     private val gameData: GameData,
     private val gameCalendar: GameCalendar,
     private val roller: SummonRoller,
+    private val rewardRules: RewardRules,
     private val userRepository: UserRepository,
     private val tomoRepository: TomoRepository,
     private val coinRepository: CoinRepository,
@@ -63,7 +66,7 @@ class SummonService(
         val user = userRepository.lockById(userId) ?: throw UserNotFoundException()
         if (user.coinBalance < banner.cost) {
             val shortfall = banner.cost - user.coinBalance
-            throw NotEnoughCoinsException(shortfall, distanceNeededM = shortfall * 1000 / gameData.tunables.coinTiers.first().coinsPerKm)
+            throw NotEnoughCoinsException(shortfall, rewardRules.distanceToEarnM(shortfall))
         }
 
         val pool = poolOf(banner)

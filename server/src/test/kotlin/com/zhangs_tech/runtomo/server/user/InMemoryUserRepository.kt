@@ -8,6 +8,8 @@ class InMemoryUserRepository : UserRepository {
 
     override fun findById(id: UUID): User? = users.find { it.id == id }
 
+    override fun findByFriendCode(friendCode: String): User? = users.find { it.friendCode == friendCode }
+
     override fun lockById(id: UUID): User? = findById(id)
 
     override fun updateDisplayName(id: UUID, displayName: String): User? =

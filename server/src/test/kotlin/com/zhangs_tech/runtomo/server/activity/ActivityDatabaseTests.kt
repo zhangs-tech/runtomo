@@ -2,7 +2,11 @@ package com.zhangs_tech.runtomo.server.activity
 
 import com.zhangs_tech.runtomo.server.game.GameCalendar
 import com.zhangs_tech.runtomo.server.home.HomeService
+import com.zhangs_tech.runtomo.server.food.FoodService
 import com.zhangs_tech.runtomo.server.quest.QuestService
+import com.zhangs_tech.runtomo.server.social.FriendService
+import com.zhangs_tech.runtomo.server.social.LeaderboardPeriod
+import com.zhangs_tech.runtomo.server.social.LeaderboardService
 import com.zhangs_tech.runtomo.server.summon.SummonService
 import com.zhangs_tech.runtomo.server.tomo.TomoService
 import com.zhangs_tech.runtomo.server.user.UserRepository
@@ -25,6 +29,9 @@ class ActivityDatabaseTests(
     @Autowired val gameCalendar: GameCalendar,
     @Autowired val historyService: HistoryService,
     @Autowired val summonService: SummonService,
+    @Autowired val friendService: FriendService,
+    @Autowired val leaderboardService: LeaderboardService,
+    @Autowired val foodService: FoodService,
 ) {
     private fun createPlayer(): UUID {
         val unique = UUID.randomUUID().toString()
@@ -71,5 +78,27 @@ class ActivityDatabaseTests(
         assertEquals(summon.summon.id, latest.summon.id)
         assertEquals(if (summon.summon.wasDuplicate) 250L else 50L, summon.coinBalance)
         assertEquals(summon.coinBalance, latest.coinBalance)
+    }
+
+    @Test
+    fun `friends, leaderboard and feeding use the database correctly`() {
+        val kai = createPlayer()
+        val ana = createPlayer()
+        val today = gameCalendar.today()
+        activityService.sync(ana, today, steps = 4000) // 3000 m pays 300 coins
+        activityService.sync(kai, today, steps = 2000) // 1500 m pays 150 coins
+
+        friendService.sendRequest(kai, ana)
+        friendService.accept(ana, friendService.incomingRequests(ana).single().id)
+        val board = leaderboardService.leaderboard(kai, LeaderboardPeriod.WEEK)
+        foodService.buy(kai, "banana")
+        val fed = foodService.feed(kai, userRepository.findById(kai)!!.equippedTomoId!!, "banana")
+
+        assertEquals(listOf(ana, kai), board.rows.map { it.card.userId })
+        assertEquals(1500L, board.gapM)
+        assertEquals(3000L, friendService.friends(kai).single().todayM)
+        assertEquals(15 + 3, fed.tomo.bondPoints)
+        assertEquals(0, fed.pantry.stock.first { it.food.code == "banana" }.quantity)
+        assertEquals(100L, fed.pantry.coinBalance)
     }
 }

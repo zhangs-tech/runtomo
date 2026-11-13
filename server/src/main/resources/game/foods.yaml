@@ -1,0 +1,16 @@
+# UC-18 BR-1 and docs/foods. Food codes are permanent. Never rename or delete one (docs/erd.md).
+runtomo:
+  game:
+    foods:
+      - code: banana
+        name: Banana
+        cost: 50
+        bond: 3
+      - code: onigiri
+        name: Onigiri
+        cost: 100
+        bond: 6
+      - code: bento
+        name: Bento
+        cost: 150
+        bond: 10

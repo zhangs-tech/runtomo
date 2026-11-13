@@ -11,10 +11,10 @@ val testTunables = Tunables(
     bondPerKm = 10,
     bondLevelThresholds = listOf(0, 50, 150, 300, 500, 750, 1050, 1400, 1800, 2250),
     rewardScreenMinDistanceM = 500,
-    sleepStartHour = 23,
-    sleepEndHour = 6,
     activeDistanceM = 1000,
     speechBubbleOneIn = 3,
+    feedsPerTomoPerDay = 3,
+    maxFriends = 2,
 )
 
 val testGameData = GameData(
@@ -40,6 +40,7 @@ val testGameData = GameData(
         ),
         Banner("commons", "Commons", cost = 1000, pityThreshold = 3, duplicateCoins = 200, species = listOf(BannerSpecies("luppy", 1))),
     ),
+    foods = listOf(Food("banana", "Banana", cost = 50, bond = 3), Food("bento", "Bento", cost = 150, bond = 10)),
 )
 
 /** 2026-11-13 20:00 UTC, which is already 2026-11-14 03:00 in UTC+7. */

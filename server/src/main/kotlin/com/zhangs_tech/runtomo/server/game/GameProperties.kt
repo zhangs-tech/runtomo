@@ -8,4 +8,5 @@ data class GameProperties(
     val tunables: Tunables,
     val quests: List<Quest>,
     val banners: List<Banner>,
+    val foods: List<Food>,
 )

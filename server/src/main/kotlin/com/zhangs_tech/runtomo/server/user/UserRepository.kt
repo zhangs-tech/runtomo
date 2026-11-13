@@ -5,6 +5,7 @@ import java.util.UUID
 interface UserRepository {
     fun findById(id: UUID): User?
     fun findByAuthSubject(authSubject: String): User?
+    fun findByFriendCode(friendCode: String): User?
     /** Returns null when [friendCode] is already taken. */
     fun create(authSubject: String, displayName: String, friendCode: String): User?
     /** Locks the user row until the transaction ends. */

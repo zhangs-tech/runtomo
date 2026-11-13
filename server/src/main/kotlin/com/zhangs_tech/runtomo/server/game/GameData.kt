@@ -6,6 +6,7 @@ data class GameData(
     val tunables: Tunables,
     val quests: List<Quest>,
     val banners: List<Banner>,
+    val foods: List<Food>,
 ) {
     init {
         for (banner in banners) {
@@ -23,4 +24,6 @@ data class GameData(
     fun findQuest(code: String): Quest? = quests.find { it.code == code }
 
     fun findBanner(code: String): Banner? = banners.find { it.code == code }
+
+    fun findFood(code: String): Food? = foods.find { it.code == code }
 }

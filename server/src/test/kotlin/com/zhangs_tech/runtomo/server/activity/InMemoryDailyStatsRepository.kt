@@ -20,6 +20,12 @@ class InMemoryDailyStatsRepository : DailyStatsRepository {
         return ActivityTotal(inRange.sumOf { it.steps.toLong() }, inRange.sumOf { it.distanceM.toLong() })
     }
 
+    override fun sumDistanceByUser(userIds: Collection<UUID>, from: LocalDate, to: LocalDate): Map<UUID, Long> =
+        days.values
+            .filter { it.userId in userIds && it.localDate in from..to }
+            .groupBy { it.userId }
+            .mapValues { (_, days) -> days.sumOf { it.distanceM.toLong() } }
+
     override fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats> =
         days.values
             .filter { it.userId == userId && (before == null || it.localDate < before) }
