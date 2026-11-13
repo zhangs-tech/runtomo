@@ -121,5 +121,5 @@ keytool -list -v -keystore ~/.android/debug.keystore
 
 Default password is `android`. The `debug.keystore` location might be different depending on your OS.
 
-4. Create new Android Application client, insert the obtained SHA-1 fingerprint and package name `com.runtomo.android`
+4. Create new Android Application client, insert the obtained SHA-1 fingerprint and package name `com.zhangs_tech.runtomo`
 
