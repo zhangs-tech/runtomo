@@ -63,6 +63,37 @@ class PostgresDailyStatsRepository(private val jdbcClient: JdbcClient) : DailySt
             .optional()
             .orElse(null)
 
+    override fun sum(userId: UUID, from: LocalDate, to: LocalDate): ActivityTotal =
+        jdbcClient
+            .sql(
+                """
+                SELECT coalesce(sum(steps), 0) AS steps, coalesce(sum(distance_m), 0) AS distance_m
+                FROM daily_stats
+                WHERE user_id = :userId AND local_date BETWEEN :from AND :to
+                """.trimIndent()
+            )
+            .param("userId", userId)
+            .param("from", from)
+            .param("to", to)
+            .query { rs, _ -> ActivityTotal(rs.getLong("steps"), rs.getLong("distance_m")) }
+            .single()
+
+    override fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats> =
+        jdbcClient
+            .sql(
+                """
+                SELECT $COLUMNS FROM daily_stats
+                WHERE user_id = :userId AND (CAST(:before AS DATE) IS NULL OR local_date < :before)
+                ORDER BY local_date DESC
+                LIMIT :limit
+                """.trimIndent()
+            )
+            .param("userId", userId)
+            .param("before", before)
+            .param("limit", limit)
+            .query(ROW_MAPPER)
+            .list()
+
     private companion object {
         const val COLUMNS = "user_id, local_date, steps, distance_m, activity_coins, bond_points"
 

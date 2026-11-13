@@ -14,6 +14,7 @@ val testTunables = Tunables(
     sleepStartHour = 23,
     sleepEndHour = 6,
     activeDistanceM = 1000,
+    speechBubbleOneIn = 3,
 )
 
 val testGameData = GameData(
@@ -27,6 +28,17 @@ val testGameData = GameData(
         Quest("walk-1km", "Walk or run 1 km", QuestMetric.DISTANCE, target = 1000, reward = 100),
         Quest("walk-3km", "Walk or run 3 km", QuestMetric.DISTANCE, target = 3000, reward = 200),
         Quest("steps-5000", "Take 5,000 steps", QuestMetric.STEPS, target = 5000, reward = 150),
+    ),
+    banners = listOf(
+        Banner(
+            code = "standard",
+            name = "Standard Egg",
+            cost = 1000,
+            pityThreshold = 3,
+            duplicateCoins = 200,
+            species = listOf(BannerSpecies("luppy", 900), BannerSpecies("nova", 100)),
+        ),
+        Banner("commons", "Commons", cost = 1000, pityThreshold = 3, duplicateCoins = 200, species = listOf(BannerSpecies("luppy", 1))),
     ),
 )
 

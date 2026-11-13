@@ -28,4 +28,26 @@ class TomoService(
         userRepository.setEquippedTomo(userId, tomo.id)
         return tomo
     }
+
+    /** UC-11: every species in the roster, with the Player's Tomo of that species if they own one. */
+    fun collection(userId: UUID): Collection {
+        val user = userRepository.findById(userId) ?: throw UserNotFoundException()
+        val owned = tomoRepository.findByUserId(userId).associateBy { it.speciesCode }
+        return Collection(
+            entries = gameData.species.map { CollectionEntry(it, owned[it.code]) },
+            equippedTomoId = user.equippedTomoId,
+        )
+    }
+
+    fun rename(userId: UUID, tomoId: UUID, nickname: String): Tomo {
+        if (!Nickname.isValid(nickname)) throw InvalidNicknameException()
+        return tomoRepository.rename(tomoId, userId, nickname) ?: throw TomoNotFoundException()
+    }
+
+    /** BR-1: exactly one Tomo is equipped. The Player can equip only their own Tomo. */
+    fun equip(userId: UUID, tomoId: UUID) {
+        val tomo = tomoRepository.findById(tomoId)
+        if (tomo?.userId != userId) throw TomoNotFoundException()
+        userRepository.setEquippedTomo(userId, tomoId)
+    }
 }

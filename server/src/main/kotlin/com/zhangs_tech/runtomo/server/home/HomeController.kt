@@ -25,6 +25,7 @@ class HomeController(private val homeService: HomeService, private val gameData:
             coinBalance = home.user.coinBalance,
             quests = home.quests.map(QuestResponse::from),
             lastSyncDate = home.lastSyncDate,
+            speechBubbleOneIn = gameData.tunables.speechBubbleOneIn,
         )
     }
 }

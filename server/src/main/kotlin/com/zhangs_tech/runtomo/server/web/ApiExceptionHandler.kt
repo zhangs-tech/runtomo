@@ -7,9 +7,12 @@ import com.zhangs_tech.runtomo.server.auth.InvalidRefreshTokenException
 import com.zhangs_tech.runtomo.server.quest.QuestAlreadyClaimedException
 import com.zhangs_tech.runtomo.server.quest.QuestNotCompleteException
 import com.zhangs_tech.runtomo.server.quest.QuestNotFoundException
+import com.zhangs_tech.runtomo.server.summon.BannerNotFoundException
+import com.zhangs_tech.runtomo.server.summon.NotEnoughCoinsException
 import com.zhangs_tech.runtomo.server.tomo.InvalidNicknameException
 import com.zhangs_tech.runtomo.server.tomo.NotAStarterException
 import com.zhangs_tech.runtomo.server.tomo.StarterAlreadyChosenException
+import com.zhangs_tech.runtomo.server.tomo.TomoNotFoundException
 import com.zhangs_tech.runtomo.server.user.InvalidDisplayNameException
 import com.zhangs_tech.runtomo.server.user.UserNotFoundException
 import org.springframework.http.HttpStatus
@@ -38,7 +41,7 @@ class ApiExceptionHandler {
     fun handleBadRequest(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
 
-    @ExceptionHandler(QuestNotFoundException::class)
+    @ExceptionHandler(QuestNotFoundException::class, TomoNotFoundException::class, BannerNotFoundException::class)
     fun handleNotFound(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message)
 
@@ -46,6 +49,14 @@ class ApiExceptionHandler {
     fun handleDayClosed(e: DayClosedException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.message).apply {
             type = URI.create("/problems/day-closed")
+        }
+
+    @ExceptionHandler(NotEnoughCoinsException::class)
+    fun handleNotEnoughCoins(e: NotEnoughCoinsException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message).apply {
+            type = URI.create("/problems/not-enough-coins")
+            setProperty("shortfall", e.shortfall)
+            setProperty("distanceNeededM", e.distanceNeededM)
         }
 
     @ExceptionHandler(

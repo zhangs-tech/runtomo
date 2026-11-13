@@ -19,6 +19,13 @@ class InMemoryTomoRepository : TomoRepository {
         )
     }
 
+    override fun rename(id: UUID, userId: UUID, nickname: String): Tomo? {
+        val index = tomos.indexOfFirst { it.id == id && it.userId == userId }
+        if (index < 0) return null
+        tomos[index] = tomos[index].copy(nickname = nickname)
+        return tomos[index]
+    }
+
     override fun create(userId: UUID, speciesCode: String, nickname: String, birthday: LocalDate): Tomo {
         val tomo = Tomo(
             id = UUID.randomUUID(),

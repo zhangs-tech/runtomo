@@ -17,6 +17,18 @@ class PostgresQuestClaimRepository(private val jdbcClient: JdbcClient) : QuestCl
             .filterNotNull()
             .toSet()
 
+    override fun findClaimedCodes(userId: UUID, dates: Collection<LocalDate>): Map<LocalDate, Set<String>> {
+        if (dates.isEmpty()) return emptyMap()
+        return jdbcClient
+            .sql("SELECT local_date, quest_code FROM quest_claims WHERE user_id = :userId AND local_date IN (:dates)")
+            .param("userId", userId)
+            .param("dates", dates)
+            .query { rs, _ -> rs.getObject("local_date", LocalDate::class.java) to rs.getString("quest_code") }
+            .list()
+            .groupBy({ it.first }, { it.second })
+            .mapValues { it.value.toSet() }
+    }
+
     override fun create(userId: UUID, questCode: String, localDate: LocalDate): UUID? =
         jdbcClient
             .sql(

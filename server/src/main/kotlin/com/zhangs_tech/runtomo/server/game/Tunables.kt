@@ -12,6 +12,7 @@ data class Tunables(
     val sleepStartHour: Int,
     val sleepEndHour: Int,
     val activeDistanceM: Int,
+    val speechBubbleOneIn: Int,
 ) {
     /** UC-08 BR-1: the daily goal is the full-reward coin tier. */
     val dailyGoalM: Int get() = coinTiers.first().upToM

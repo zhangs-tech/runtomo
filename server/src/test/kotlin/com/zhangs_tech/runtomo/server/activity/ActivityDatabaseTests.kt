@@ -3,6 +3,7 @@ package com.zhangs_tech.runtomo.server.activity
 import com.zhangs_tech.runtomo.server.game.GameCalendar
 import com.zhangs_tech.runtomo.server.home.HomeService
 import com.zhangs_tech.runtomo.server.quest.QuestService
+import com.zhangs_tech.runtomo.server.summon.SummonService
 import com.zhangs_tech.runtomo.server.tomo.TomoService
 import com.zhangs_tech.runtomo.server.user.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,6 +23,8 @@ class ActivityDatabaseTests(
     @Autowired val questService: QuestService,
     @Autowired val homeService: HomeService,
     @Autowired val gameCalendar: GameCalendar,
+    @Autowired val historyService: HistoryService,
+    @Autowired val summonService: SummonService,
 ) {
     private fun createPlayer(): UUID {
         val unique = UUID.randomUUID().toString()
@@ -49,5 +52,24 @@ class ActivityDatabaseTests(
         assertEquals(1500, home.tomo!!.distanceTogetherM)
         assertEquals(15, home.tomo.bondPoints)
         assertEquals(today, home.lastSyncDate)
+    }
+
+    @Test
+    fun `history and summon use the database correctly`() {
+        val userId = createPlayer()
+        val today = gameCalendar.today()
+        activityService.sync(userId, today, steps = 20_000) // 15 km pays 750 coins
+        questService.claim(userId, "walk-1km")
+        questService.claim(userId, "walk-3km") // 1050 coins in total
+
+        val day = historyService.days(userId, cursor = null, limit = 30).days.single()
+        val summon = summonService.summon(userId, "standard")
+        val latest = summonService.latest(userId, 1).single()
+
+        assertEquals(1050, day.coins)
+        assertEquals(15_000, historyService.totals(userId).month.distanceM)
+        assertEquals(summon.summon.id, latest.summon.id)
+        assertEquals(if (summon.summon.wasDuplicate) 250L else 50L, summon.coinBalance)
+        assertEquals(summon.coinBalance, latest.coinBalance)
     }
 }

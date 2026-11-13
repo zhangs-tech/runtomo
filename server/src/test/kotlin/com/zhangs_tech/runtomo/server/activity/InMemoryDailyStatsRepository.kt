@@ -15,6 +15,17 @@ class InMemoryDailyStatsRepository : DailyStatsRepository {
         days[stats.userId to stats.localDate] = stats
     }
 
+    override fun sum(userId: UUID, from: LocalDate, to: LocalDate): ActivityTotal {
+        val inRange = days.values.filter { it.userId == userId && it.localDate in from..to }
+        return ActivityTotal(inRange.sumOf { it.steps.toLong() }, inRange.sumOf { it.distanceM.toLong() })
+    }
+
+    override fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats> =
+        days.values
+            .filter { it.userId == userId && (before == null || it.localDate < before) }
+            .sortedByDescending { it.localDate }
+            .take(limit)
+
     override fun findLatestDate(userId: UUID): LocalDate? =
         days.keys.filter { it.first == userId }.maxOfOrNull { it.second }
 }

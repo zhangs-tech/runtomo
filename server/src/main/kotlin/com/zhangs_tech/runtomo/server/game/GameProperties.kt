@@ -7,4 +7,5 @@ data class GameProperties(
     val species: List<Species>,
     val tunables: Tunables,
     val quests: List<Quest>,
+    val banners: List<Banner>,
 )

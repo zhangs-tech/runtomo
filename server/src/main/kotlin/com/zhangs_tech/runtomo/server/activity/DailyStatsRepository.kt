@@ -14,4 +14,10 @@ interface DailyStatsRepository {
 
     fun findLatestDate(userId: UUID): LocalDate?
 
+    /** Sums steps and distance from [from] to [to], both included. */
+    fun sum(userId: UUID, from: LocalDate, to: LocalDate): ActivityTotal
+
+    /** Up to [limit] days before [before] (or all days if null), newest first. */
+    fun findPage(userId: UUID, before: LocalDate?, limit: Int): List<DailyStats>
+
 }

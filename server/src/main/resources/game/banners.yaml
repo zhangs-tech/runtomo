@@ -1,0 +1,17 @@
+# UC-12. Banner codes are permanent. A species' rate is its weight divided by the banner's total weight.
+# The pool holds the 3 starters for now, until more species exist (decided 2026-11-13).
+runtomo:
+  game:
+    banners:
+      - code: standard
+        name: Standard Egg
+        cost: 1000              # BR-1
+        pity-threshold: 20      # BR-3
+        duplicate-coins: 200    # BR-4
+        species:
+          - code: luppy
+            weight: 334
+          - code: rocky
+            weight: 333
+          - code: aeroblast
+            weight: 333

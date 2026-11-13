@@ -39,6 +39,16 @@ class PostgresTomoRepository(private val jdbcClient: JdbcClient) : TomoRepositor
             .update()
     }
 
+    override fun rename(id: UUID, userId: UUID, nickname: String): Tomo? =
+        jdbcClient
+            .sql("UPDATE user_tomos SET nickname = :nickname WHERE id = :id AND user_id = :userId RETURNING $TOMO_COLUMNS")
+            .param("id", id)
+            .param("userId", userId)
+            .param("nickname", nickname)
+            .query(TOMO_ROW_MAPPER)
+            .optional()
+            .orElse(null)
+
     override fun create(userId: UUID, speciesCode: String, nickname: String, birthday: LocalDate): Tomo =
         jdbcClient
             .sql(

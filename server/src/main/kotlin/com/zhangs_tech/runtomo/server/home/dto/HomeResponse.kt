@@ -16,6 +16,8 @@ data class HomeResponse(
     val coinBalance: Long,
     val quests: List<QuestResponse>,
     val lastSyncDate: LocalDate?,
+    /** UC-09 BR-3: a tap on the Tomo shows a speech bubble 1 time in this many. */
+    val speechBubbleOneIn: Int,
 )
 
 data class TodayResponse(val date: LocalDate, val steps: Int, val distanceM: Int)
