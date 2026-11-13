@@ -8,6 +8,17 @@ class InMemoryTomoRepository : TomoRepository {
 
     override fun findByUserId(userId: UUID): List<Tomo> = tomos.filter { it.userId == userId }
 
+    override fun findById(id: UUID): Tomo? = tomos.find { it.id == id }
+
+    override fun updateProgress(id: UUID, distanceTogetherM: Long, bondPoints: Int, bondLevel: Int) {
+        val index = tomos.indexOfFirst { it.id == id }
+        tomos[index] = tomos[index].copy(
+            distanceTogetherM = distanceTogetherM,
+            bondPoints = bondPoints,
+            bondLevel = bondLevel,
+        )
+    }
+
     override fun create(userId: UUID, speciesCode: String, nickname: String, birthday: LocalDate): Tomo {
         val tomo = Tomo(
             id = UUID.randomUUID(),

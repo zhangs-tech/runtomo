@@ -1,0 +1,17 @@
+# Tunable values from docs/usecases. Change them here, not in the app.
+runtomo:
+  game:
+    tunables:
+      stride-m: 0.75                   # UC-03 BR-3
+      max-steps-per-day: 100000        # UC-03, protects stored values
+      coin-tiers:                      # UC-05 BR-1. The first tier is also the daily goal (UC-08 BR-1).
+        - up-to-m: 5000
+          coins-per-km: 100
+        - up-to-m: 10000
+          coins-per-km: 50
+      bond-per-km: 10                  # UC-05 BR-3
+      bond-level-thresholds: [0, 50, 150, 300, 500, 750, 1050, 1400, 1800, 2250]  # UC-05 BR-4
+      reward-screen-min-distance-m: 500  # UC-06 BR-2
+      sleep-start-hour: 23             # UC-10 BR-1, UTC+7
+      sleep-end-hour: 6
+      active-distance-m: 1000          # UC-10 BR-1

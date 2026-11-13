@@ -1,0 +1,19 @@
+# UC-13 BR-1. Quest codes are permanent. Never rename or delete one (docs/erd.md).
+runtomo:
+  game:
+    quests:
+      - code: walk-1km
+        title: Walk or run 1 km
+        metric: distance
+        target: 1000
+        reward: 100
+      - code: walk-3km
+        title: Walk or run 3 km
+        metric: distance
+        target: 3000
+        reward: 200
+      - code: steps-5000
+        title: Take 5,000 steps
+        metric: steps
+        target: 5000
+        reward: 150

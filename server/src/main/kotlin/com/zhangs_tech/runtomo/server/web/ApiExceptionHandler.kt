@@ -1,7 +1,12 @@
 package com.zhangs_tech.runtomo.server.web
 
+import com.zhangs_tech.runtomo.server.activity.DayClosedException
+import com.zhangs_tech.runtomo.server.activity.InvalidStepsException
 import com.zhangs_tech.runtomo.server.auth.InvalidIdTokenException
 import com.zhangs_tech.runtomo.server.auth.InvalidRefreshTokenException
+import com.zhangs_tech.runtomo.server.quest.QuestAlreadyClaimedException
+import com.zhangs_tech.runtomo.server.quest.QuestNotCompleteException
+import com.zhangs_tech.runtomo.server.quest.QuestNotFoundException
 import com.zhangs_tech.runtomo.server.tomo.InvalidNicknameException
 import com.zhangs_tech.runtomo.server.tomo.NotAStarterException
 import com.zhangs_tech.runtomo.server.tomo.StarterAlreadyChosenException
@@ -11,6 +16,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.net.URI
 
 // Maps domain exceptions to RFC 9457 problem responses. Services never know about HTTP.
 @RestControllerAdvice
@@ -27,11 +33,26 @@ class ApiExceptionHandler {
         InvalidDisplayNameException::class,
         InvalidNicknameException::class,
         NotAStarterException::class,
+        InvalidStepsException::class,
     )
     fun handleBadRequest(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
 
-    @ExceptionHandler(StarterAlreadyChosenException::class)
+    @ExceptionHandler(QuestNotFoundException::class)
+    fun handleNotFound(e: RuntimeException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message)
+
+    @ExceptionHandler(DayClosedException::class)
+    fun handleDayClosed(e: DayClosedException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.message).apply {
+            type = URI.create("/problems/day-closed")
+        }
+
+    @ExceptionHandler(
+        StarterAlreadyChosenException::class,
+        QuestNotCompleteException::class,
+        QuestAlreadyClaimedException::class,
+    )
     fun handleConflict(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message)
 }

@@ -15,6 +15,30 @@ class PostgresTomoRepository(private val jdbcClient: JdbcClient) : TomoRepositor
             .query(TOMO_ROW_MAPPER)
             .list()
 
+    override fun findById(id: UUID): Tomo? =
+        jdbcClient
+            .sql("SELECT $TOMO_COLUMNS FROM user_tomos WHERE id = :id")
+            .param("id", id)
+            .query(TOMO_ROW_MAPPER)
+            .optional()
+            .orElse(null)
+
+    override fun updateProgress(id: UUID, distanceTogetherM: Long, bondPoints: Int, bondLevel: Int) {
+        jdbcClient
+            .sql(
+                """
+                UPDATE user_tomos
+                SET distance_together_m = :distanceTogetherM, bond_points = :bondPoints, bond_level = :bondLevel
+                WHERE id = :id
+                """.trimIndent()
+            )
+            .param("id", id)
+            .param("distanceTogetherM", distanceTogetherM)
+            .param("bondPoints", bondPoints)
+            .param("bondLevel", bondLevel)
+            .update()
+    }
+
     override fun create(userId: UUID, speciesCode: String, nickname: String, birthday: LocalDate): Tomo =
         jdbcClient
             .sql(
