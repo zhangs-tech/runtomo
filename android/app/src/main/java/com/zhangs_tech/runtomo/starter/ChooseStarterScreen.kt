@@ -1,24 +1,234 @@
 package com.zhangs_tech.runtomo.starter
 
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zhangs_tech.runtomo.R
+import com.zhangs_tech.runtomo.tomo.Rarity
+import com.zhangs_tech.runtomo.tomo.Species
+import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 
 @Composable
-fun ChooseStarterScreen(modifier: Modifier = Modifier) {
+fun ChooseStarterScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ChooseStarterViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    BackHandler(enabled = uiState.isNaming, onBack = viewModel::cancelNaming)
+    ChooseStarterContent(
+        uiState = uiState,
+        onRetryLoad = viewModel::loadStarters,
+        onSelect = viewModel::select,
+        onConfirmSelection = viewModel::confirmSelection,
+        onNicknameChange = viewModel::onNicknameChange,
+        onSave = viewModel::save,
+        onCancelNaming = viewModel::cancelNaming,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ChooseStarterContent(
+    uiState: ChooseStarterUiState,
+    onRetryLoad: () -> Unit,
+    onSelect: (Species) -> Unit,
+    onConfirmSelection: () -> Unit,
+    onNicknameChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancelNaming: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(stringResource(R.string.choose_starter_title))
+            val selected = uiState.selected
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.starters.isEmpty() -> LoadFailed(uiState.error, onRetryLoad)
+                uiState.isNaming && selected != null -> NicknameStep(
+                    species = selected,
+                    uiState = uiState,
+                    onNicknameChange = onNicknameChange,
+                    onSave = onSave,
+                    onBack = onCancelNaming,
+                )
+                else -> PickStep(uiState, onSelect, onConfirmSelection)
+            }
         }
+    }
+}
+
+@Composable
+private fun ColumnScope.PickStep(
+    uiState: ChooseStarterUiState,
+    onSelect: (Species) -> Unit,
+    onConfirmSelection: () -> Unit,
+) {
+    Text(stringResource(R.string.choose_starter_intro), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.choose_starter_title), style = MaterialTheme.typography.headlineMedium)
+    uiState.starters.forEach { species ->
+        StarterCard(species, isSelected = species == uiState.selected, onClick = { onSelect(species) })
+    }
+    uiState.selected?.let { selected ->
+        Button(onClick = onConfirmSelection, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.choose_starter_confirm, selected.name))
+        }
+    }
+}
+
+@Composable
+private fun StarterCard(species: Species, isSelected: Boolean, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(selected = isSelected, onClick = onClick, role = Role.RadioButton),
+        colors = if (isSelected) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        } else {
+            CardDefaults.cardColors()
+        },
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TomoArt(species, size = 64.dp)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(species.name, style = MaterialTheme.typography.titleLarge)
+                if (isSelected) {
+                    Text(species.description, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.NicknameStep(
+    species: Species,
+    uiState: ChooseStarterUiState,
+    onNicknameChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onBack: () -> Unit,
+) {
+    TomoArt(species, size = 128.dp)
+    Text(
+        text = stringResource(R.string.nickname_title, species.name),
+        style = MaterialTheme.typography.headlineSmall,
+        textAlign = TextAlign.Center,
+    )
+    OutlinedTextField(
+        value = uiState.nickname,
+        onValueChange = onNicknameChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.nickname_label)) },
+        supportingText = { Text(stringResource(R.string.nickname_rule)) },
+        isError = uiState.error == StarterError.InvalidNickname,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onSave() }),
+    )
+    uiState.error?.takeIf { it != StarterError.InvalidNickname }?.let { ErrorText(it) }
+    if (uiState.isSaving) {
+        CircularProgressIndicator()
+    } else {
+        Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if (uiState.error == null) R.string.nickname_confirm else R.string.retry))
+        }
+        TextButton(onClick = onBack) { Text(stringResource(R.string.back)) }
+    }
+}
+
+@Composable
+private fun LoadFailed(error: StarterError?, onRetry: () -> Unit) {
+    error?.let { ErrorText(it) }
+    OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+}
+
+@Composable
+private fun ErrorText(error: StarterError) {
+    Text(
+        text = stringResource(
+            if (error == StarterError.NoConnection) R.string.error_no_connection else R.string.error_generic,
+        ),
+        color = MaterialTheme.colorScheme.error,
+        textAlign = TextAlign.Center,
+    )
+}
+
+private val previewStarters = listOf(
+    Species("luppy", "Luppy", Rarity.COMMON, "Luppy runs hot."),
+    Species("rocky", "Rocky", Rarity.COMMON, "Rocky is in no hurry."),
+    Species("aeroblast", "Aeroblast", Rarity.COMMON, "Aeroblast is quick as the wind."),
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun PickStepPreview() {
+    RuntomoTheme {
+        ChooseStarterContent(
+            uiState = ChooseStarterUiState(starters = previewStarters, isLoading = false, selected = previewStarters[0]),
+            onRetryLoad = {}, onSelect = {}, onConfirmSelection = {}, onNicknameChange = {}, onSave = {}, onCancelNaming = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NicknameStepPreview() {
+    RuntomoTheme {
+        ChooseStarterContent(
+            uiState = ChooseStarterUiState(
+                starters = previewStarters,
+                isLoading = false,
+                selected = previewStarters[1],
+                isNaming = true,
+                nickname = "Rocky",
+            ),
+            onRetryLoad = {}, onSelect = {}, onConfirmSelection = {}, onNicknameChange = {}, onSave = {}, onCancelNaming = {},
+        )
     }
 }

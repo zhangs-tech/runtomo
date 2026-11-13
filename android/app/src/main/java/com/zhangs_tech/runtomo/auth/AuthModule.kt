@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.zhangs_tech.runtomo.BuildConfig
+import com.zhangs_tech.runtomo.network.AccessTokenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -22,6 +23,9 @@ abstract class AuthModule {
 
     @Binds
     abstract fun bindTokenStore(dataStoreTokenStore: DataStoreTokenStore): TokenStore
+
+    @Binds
+    abstract fun bindAccessTokenProvider(authRepository: AuthRepository): AccessTokenProvider
 
     companion object {
         @Provides

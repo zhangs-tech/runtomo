@@ -12,10 +12,12 @@ import com.zhangs_tech.runtomo.auth.SessionState
 import com.zhangs_tech.runtomo.auth.WelcomeScreen
 import com.zhangs_tech.runtomo.home.HomeScreen
 import com.zhangs_tech.runtomo.starter.ChooseStarterScreen
+import com.zhangs_tech.runtomo.user.ConfirmDisplayNameScreen
 
 fun SessionState.rootRoute(): Route? = when (this) {
     SessionState.Loading -> null
     SessionState.SignedOut -> Route.Welcome
+    SessionState.NeedsDisplayName -> Route.ConfirmDisplayName
     SessionState.NeedsStarterTomo -> Route.ChooseStarter
     SessionState.Ready -> Route.Home
 }
@@ -39,6 +41,7 @@ fun RuntomoNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier)
         ),
         entryProvider = entryProvider {
             entry<Route.Welcome> { WelcomeScreen() }
+            entry<Route.ConfirmDisplayName> { ConfirmDisplayNameScreen() }
             entry<Route.ChooseStarter> { ChooseStarterScreen() }
             entry<Route.Home> { HomeScreen() }
         },

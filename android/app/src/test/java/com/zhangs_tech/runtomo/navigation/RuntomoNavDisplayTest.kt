@@ -38,6 +38,13 @@ class RuntomoNavDisplayTest {
     }
 
     @Test
+    fun needsDisplayName_showsConfirmDisplayName() {
+        composeRule.setContent { RuntomoNavDisplay(SessionState.NeedsDisplayName) }
+
+        composeRule.onNodeWithText(text(R.string.display_name_title)).assertIsDisplayed()
+    }
+
+    @Test
     fun needsStarterTomo_showsChooseStarter() {
         composeRule.setContent { RuntomoNavDisplay(SessionState.NeedsStarterTomo) }
 

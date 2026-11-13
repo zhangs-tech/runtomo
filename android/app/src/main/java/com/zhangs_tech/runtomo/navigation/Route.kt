@@ -9,6 +9,9 @@ sealed interface Route : NavKey {
     data object Welcome : Route
 
     @Serializable
+    data object ConfirmDisplayName : Route
+
+    @Serializable
     data object ChooseStarter : Route
 
     @Serializable
