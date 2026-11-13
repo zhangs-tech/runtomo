@@ -11,6 +11,10 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CancellationException
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
@@ -39,6 +43,22 @@ fun HttpClient.withBearerAuth(tokenProvider: () -> AccessTokenProvider): HttpCli
         }
     }
 
+/** An RFC 9457 problem body. Only the fields the app reads. */
+@Serializable
+data class Problem(val type: String? = null, val shortfall: Long? = null, val distanceNeededM: Long? = null)
+
+private val problemJson = Json { ignoreUnknownKeys = true }
+
+/** Reads the problem body, or null if the body is not a problem. */
+suspend fun HttpResponse.problem(): Problem? =
+    try {
+        problemJson.decodeFromString<Problem>(bodyAsText())
+    } catch (e: SerializationException) {
+        null
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
 /** Runs a Ktor call and converts its failures to [ApiException], so callers do not see Ktor types. */
 suspend fun <T> apiCall(block: suspend () -> T): T =
     try {
@@ -48,7 +68,8 @@ suspend fun <T> apiCall(block: suspend () -> T): T =
     } catch (e: ResponseException) {
         when (e.response.status) {
             HttpStatusCode.Unauthorized -> throw ApiException.Unauthorized()
-            HttpStatusCode.Conflict -> throw ApiException.Conflict(e)
+            HttpStatusCode.NotFound -> throw ApiException.NotFound(e)
+            HttpStatusCode.Conflict -> throw ApiException.Conflict(e, e.response.problem())
             else -> throw ApiException.Failed(e)
         }
     } catch (e: IOException) {

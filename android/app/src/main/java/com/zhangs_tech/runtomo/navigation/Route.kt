@@ -20,4 +20,7 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object Summon : Route
+
+    @Serializable
+    data object Feed : Route
 }

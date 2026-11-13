@@ -6,9 +6,6 @@ import kotlin.random.Random
 enum class SpeechLine { WALK, STEPS_TODAY, FUN, READY }
 
 sealed interface TomoReaction {
-    /** UC-09 2a: the Tomo opens one eye, then sleeps again. */
-    data object Sleepy : TomoReaction
-
     /** UC-09 2b: the Player tapped many times quickly. */
     data object TooMuch : TomoReaction
 
@@ -23,8 +20,6 @@ class TomoReactions(
     private val recentTaps = ArrayDeque<Long>()
 
     fun onTap(mood: Mood, todaySteps: Int, speechBubbleOneIn: Int): TomoReaction {
-        if (mood == Mood.SLEEPY) return TomoReaction.Sleepy
-
         val now = nowMillis()
         recentTaps.addLast(now)
         while (recentTaps.first() < now - QUICK_TAP_WINDOW_MILLIS) recentTaps.removeFirst()

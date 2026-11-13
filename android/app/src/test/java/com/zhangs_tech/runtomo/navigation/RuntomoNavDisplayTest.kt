@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.zhangs_tech.runtomo.HiltTestActivity
 import com.zhangs_tech.runtomo.R
@@ -58,6 +59,20 @@ class RuntomoNavDisplayTest {
 
         composeRule.onNodeWithText(text(R.string.tab_tomos)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.tab_history)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.tab_social)).assertIsDisplayed()
+    }
+
+    @Test
+    fun home_openFeed_thenBackReturnsHome() {
+        composeRule.setContent { RuntomoNavDisplay(SessionState.Ready) }
+
+        composeRule.onNodeWithText(text(R.string.feed)).performScrollTo().performClick()
+        composeRule.onNodeWithText(text(R.string.feed_title, "Mochi")).assertIsDisplayed()
+
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+
+        composeRule.onNodeWithText(text(R.string.feed_title, "Mochi")).assertDoesNotExist()
+        composeRule.onNodeWithText(text(R.string.tab_social)).assertIsDisplayed()
     }
 
     @Test

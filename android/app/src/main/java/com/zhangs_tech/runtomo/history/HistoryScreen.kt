@@ -91,16 +91,13 @@ private fun HistoryList(uiState: HistoryUiState, onLoadMore: () -> Unit) {
     }
     LaunchedEffect(atEnd, uiState.nextCursor) { if (atEnd) onLoadMore() }
 
-    val unsynced = uiState.unsyncedToday
-    val days = if (unsynced == null) uiState.days else uiState.days.filterNot { it.date == unsynced.date }
     LazyColumn(
         state = listState,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         uiState.totals?.let { totals -> item { TotalsCard(totals) } }
-        unsynced?.let { item { UnsyncedTodayRow(it) } }
-        if (days.isEmpty() && unsynced == null) {
+        if (uiState.days.isEmpty()) {
             item {
                 Text(
                     text = stringResource(R.string.history_empty),
@@ -110,7 +107,7 @@ private fun HistoryList(uiState: HistoryUiState, onLoadMore: () -> Unit) {
                 )
             }
         }
-        items(days, key = { it.date }) { DayRow(it) }
+        items(uiState.days, key = { it.date }) { DayRow(it) }
         if (uiState.isLoadingMore) {
             item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
         }
@@ -150,21 +147,6 @@ private fun DayRow(day: HistoryDay) {
     }
 }
 
-@Composable
-private fun UnsyncedTodayRow(today: UnsyncedToday) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.history_today), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.history_day_activity, formatNumber(today.steps.toLong()), formatKm(today.distanceM)))
-            Text(
-                text = stringResource(R.string.history_waiting_to_sync),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
-        }
-    }
-}
-
 private fun formatNumber(value: Long): String = NumberFormat.getInstance().format(value)
 
 private fun formatDay(isoDate: String): String = LocalDate.parse(isoDate).format(DateTimeFormatter.ofPattern("EEE, d MMM"))
@@ -178,7 +160,6 @@ private fun HistoryContentPreview() {
                 isLoading = false,
                 totals = PeriodTotals(ActivityTotal(12_000, 9000), ActivityTotal(40_000, 30_000)),
                 days = listOf(HistoryDay("2026-11-13", 6000, 4500, 450, 45), HistoryDay("2026-11-12", 2000, 1500, 150, 15)),
-                unsyncedToday = UnsyncedToday("2026-11-14", 1600, 1200),
             ),
             onRetry = {},
             onLoadMore = {},

@@ -2,13 +2,8 @@ package com.zhangs_tech.runtomo.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zhangs_tech.runtomo.activity.ActivityRepository
-import com.zhangs_tech.runtomo.cache.PlayerCache
-import com.zhangs_tech.runtomo.core.GameDay
-import com.zhangs_tech.runtomo.core.distanceM
 import com.zhangs_tech.runtomo.network.ApiException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -17,17 +12,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Clock
 import javax.inject.Inject
-
-/** Today's steps from the phone that the server does not have yet (UC-07 2b). */
-data class UnsyncedToday(val date: String, val steps: Int, val distanceM: Int)
 
 data class HistoryUiState(
     val isLoading: Boolean = true,
     val totals: PeriodTotals? = null,
     val days: List<HistoryDay> = emptyList(),
-    val unsyncedToday: UnsyncedToday? = null,
     val nextCursor: String? = null,
     val isLoadingMore: Boolean = false,
     val loadFailed: Boolean = false,
@@ -36,16 +26,13 @@ data class HistoryUiState(
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val historyApi: HistoryApi,
-    private val activityRepository: ActivityRepository,
-    private val playerCache: PlayerCache,
-    private val clock: Clock,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
 
-    /** UC-07 trigger: the Player opens History. */
+    /** UC-07 trigger: the Player opens History. It shows only the days the server received (BR-1). */
     fun load() {
         if (loadJob?.isActive == true) return
         loadJob = viewModelScope.launch {
@@ -63,11 +50,10 @@ class HistoryViewModel @Inject constructor(
                         totals = totals,
                         days = page.days,
                         nextCursor = page.nextCursor,
-                        unsyncedToday = unsyncedToday(page.days),
                     )
                 }
             } catch (e: ApiException) {
-                _uiState.update { it.copy(isLoading = false, loadFailed = it.days.isEmpty(), unsyncedToday = unsyncedToday(it.days)) }
+                _uiState.update { it.copy(isLoading = false, loadFailed = it.days.isEmpty()) }
             }
         }
     }
@@ -87,19 +73,4 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    private suspend fun unsyncedToday(days: List<HistoryDay>): UnsyncedToday? {
-        if (!activityRepository.canReadSteps()) return null
-        val today = GameDay.today(clock).toString()
-        val phoneSteps = try {
-            activityRepository.readTodaySteps()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            return null
-        }
-        val syncedSteps = days.firstOrNull { it.date == today }?.steps ?: 0
-        if (phoneSteps <= syncedSteps) return null
-        val strideM = playerCache.lastAcceptedSync()?.strideM ?: playerCache.home()?.strideM ?: return null
-        return UnsyncedToday(today, phoneSteps, distanceM(phoneSteps, strideM))
-    }
 }

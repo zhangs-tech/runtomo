@@ -20,13 +20,6 @@ class TomoReactionsTest {
     }
 
     @Test
-    fun sleepyTomo_opensOneEye() {
-        val reactions = TomoReactions(alwaysZero) { now }
-
-        assertEquals(TomoReaction.Sleepy, reactions.onTap(Mood.SLEEPY, 0, 3))
-    }
-
-    @Test
     fun normalTap_canShowSpeechBubble() {
         val reactions = TomoReactions(alwaysZero) { now }
 

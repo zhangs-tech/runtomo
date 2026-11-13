@@ -13,7 +13,7 @@ import com.zhangs_tech.runtomo.tomo.Tomo
 fun testHome(today: String = "2026-11-14", lastSyncDate: String? = today) = HomeData(
     displayName = "Kai",
     tomo = Tomo("t1", Species("luppy", "Luppy", Rarity.COMMON, "Runs hot."), "Mochi", 0, 1, 0, "2026-11-01"),
-    mood = Mood.BORED,
+    mood = Mood.RELAXED,
     today = Today(today, 0, 0),
     dailyGoalM = 5000,
     strideM = 0.75,

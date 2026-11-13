@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.zhangs_tech.runtomo.auth.SessionState
 import com.zhangs_tech.runtomo.auth.WelcomeScreen
+import com.zhangs_tech.runtomo.food.FeedScreen
 import com.zhangs_tech.runtomo.main.MainScreen
 import com.zhangs_tech.runtomo.starter.ChooseStarterScreen
 import com.zhangs_tech.runtomo.summon.SummonScreen
@@ -44,8 +45,11 @@ fun RuntomoNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier)
             entry<Route.Welcome> { WelcomeScreen() }
             entry<Route.ConfirmDisplayName> { ConfirmDisplayNameScreen() }
             entry<Route.ChooseStarter> { ChooseStarterScreen() }
-            entry<Route.Main> { MainScreen(onOpenSummon = { backStack.add(Route.Summon) }) }
+            entry<Route.Main> {
+                MainScreen(onOpenSummon = { backStack.add(Route.Summon) }, onOpenFeed = { backStack.add(Route.Feed) })
+            }
             entry<Route.Summon> { SummonScreen(onBack = { backStack.removeLastOrNull() }) }
+            entry<Route.Feed> { FeedScreen(onBack = { backStack.removeLastOrNull() }) }
         },
     )
 }

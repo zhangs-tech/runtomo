@@ -1,13 +1,7 @@
 package com.zhangs_tech.runtomo.history
 
 import com.zhangs_tech.runtomo.MainDispatcherRule
-import com.zhangs_tech.runtomo.activity.ActivityRepository
-import com.zhangs_tech.runtomo.activity.FakeActivityApi
-import com.zhangs_tech.runtomo.activity.FakeStepsReader
-import com.zhangs_tech.runtomo.cache.AcceptedSync
-import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.network.ApiException
-import com.zhangs_tech.runtomo.testClock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -22,14 +16,7 @@ class HistoryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val historyApi = FakeHistoryApi()
-    private val stepsReader = FakeStepsReader(steps = 1600)
-    private val playerCache = FakePlayerCache().apply { acceptedSync = AcceptedSync("2026-11-14", 1600, 0.75) }
-    private val viewModel = HistoryViewModel(
-        historyApi,
-        ActivityRepository(stepsReader, FakeActivityApi(), playerCache, testClock),
-        playerCache,
-        testClock,
-    )
+    private val viewModel by lazy { HistoryViewModel(historyApi) }
     private val state get() = viewModel.uiState.value
 
     @Test
@@ -39,7 +26,6 @@ class HistoryViewModelTest {
         assertFalse(state.isLoading)
         assertEquals(historyApi.totals, state.totals)
         assertEquals(listOf("2026-11-14", "2026-11-13"), state.days.map { it.date })
-        assertNull(state.unsyncedToday)
     }
 
     @Test
@@ -54,21 +40,22 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun phoneHasMoreStepsThanServer_showsWaitingToSync() {
-        stepsReader.steps = 2000
-
-        viewModel.load()
-
-        assertEquals(UnsyncedToday("2026-11-14", 2000, 1500), state.unsyncedToday)
-    }
-
-    @Test
-    fun offlineWithoutData_showsRetryAndPhoneSteps() {
+    fun offlineWithoutData_showsRetry() {
         historyApi.error = ApiException.Network(IOException())
 
         viewModel.load()
 
         assertTrue(state.loadFailed)
-        assertEquals(1600, state.unsyncedToday!!.steps)
+    }
+
+    @Test
+    fun offlineAfterLoad_keepsShownDays() {
+        viewModel.load()
+        historyApi.error = ApiException.Network(IOException())
+
+        viewModel.load()
+
+        assertFalse(state.loadFailed)
+        assertEquals(2, state.days.size)
     }
 }

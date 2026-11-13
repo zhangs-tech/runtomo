@@ -8,10 +8,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,7 +43,7 @@ import java.text.NumberFormat
 
 /** The equipped Tomo on the Home Screen. The Player can tap it (UC-09) or open its profile card. */
 @Composable
-fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int) {
+fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int, onFeed: () -> Unit, canFeed: Boolean) {
     val reactions = remember { TomoReactions() }
     var reaction by remember { mutableStateOf<TomoReaction?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
@@ -101,8 +103,12 @@ fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int) {
             text = stringResource(R.string.tomo_status, stringResource(mood.labelRes), tomo.bondLevel),
             style = MaterialTheme.typography.titleMedium,
         )
-        TextButton(onClick = { showProfile = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(stringResource(R.string.view_profile))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // UC-18 needs the server, so Feed waits until the app is online.
+            FilledTonalButton(onClick = onFeed, enabled = canFeed) { Text(stringResource(R.string.feed)) }
+            TextButton(onClick = { showProfile = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.view_profile))
+            }
         }
     }
 
@@ -115,7 +121,6 @@ fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int) {
 
 @Composable
 private fun bubbleText(reaction: TomoReaction, nickname: String, todaySteps: Int): String? = when (reaction) {
-    TomoReaction.Sleepy -> stringResource(R.string.tomo_sleepy_reaction, nickname)
     TomoReaction.TooMuch -> stringResource(R.string.tomo_too_much, nickname)
     is TomoReaction.Normal -> when (reaction.speech) {
         SpeechLine.WALK -> stringResource(R.string.speech_walk)
@@ -128,11 +133,9 @@ private fun bubbleText(reaction: TomoReaction, nickname: String, todaySteps: Int
 
 val Mood.labelRes: Int
     get() = when (this) {
-        Mood.SLEEPY -> R.string.mood_sleepy
         Mood.EXCITED -> R.string.mood_excited
         Mood.HAPPY -> R.string.mood_happy
         Mood.RELAXED -> R.string.mood_relaxed
-        Mood.BORED -> R.string.mood_bored
     }
 
 private const val BUBBLE_MILLIS = 2_500L

@@ -20,7 +20,7 @@ class KtorHomeApiTest {
                     assertEquals("/home", request.url.encodedPath)
                     respond(
                         """
-                        {"displayName":"Kai","mood":"BORED","dailyGoalM":5000,"strideM":0.75,"coinBalance":0,
+                        {"displayName":"Kai","mood":"RELAXED","dailyGoalM":5000,"strideM":0.75,"coinBalance":0,
                          "lastSyncDate":null,"today":{"date":"2026-11-14","steps":0,"distanceM":0},
                          "tomo":{"id":"t1","nickname":"Mochi","bondPoints":0,"bondLevel":1,"distanceTogetherM":0,
                            "birthday":"2026-11-14","species":{"code":"luppy","name":"Luppy","rarity":"COMMON","description":"Runs hot."}},

@@ -23,17 +23,19 @@ import androidx.compose.ui.res.stringResource
 import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.history.HistoryScreen
 import com.zhangs_tech.runtomo.home.HomeScreen
+import com.zhangs_tech.runtomo.social.SocialScreen
 import com.zhangs_tech.runtomo.tomo.TomosScreen
 
 enum class Tab(@StringRes val labelRes: Int, @DrawableRes val iconRes: Int) {
     HOME(R.string.tab_home, R.drawable.ic_home),
     TOMOS(R.string.tab_tomos, R.drawable.ic_tomos),
     HISTORY(R.string.tab_history, R.drawable.ic_history),
+    SOCIAL(R.string.tab_social, R.drawable.ic_social),
 }
 
-/** The signed-in app: Home, Tomos and History tabs. Back on another tab returns to Home. */
+/** The signed-in app: Home, Tomos, History and Social tabs. Back on another tab returns to Home. */
 @Composable
-fun MainScreen(onOpenSummon: () -> Unit, modifier: Modifier = Modifier) {
+fun MainScreen(onOpenSummon: () -> Unit, onOpenFeed: () -> Unit, modifier: Modifier = Modifier) {
     var selectedTab by rememberSaveable { mutableStateOf(Tab.HOME) }
     BackHandler(enabled = selectedTab != Tab.HOME) { selectedTab = Tab.HOME }
 
@@ -54,9 +56,10 @@ fun MainScreen(onOpenSummon: () -> Unit, modifier: Modifier = Modifier) {
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             when (selectedTab) {
-                Tab.HOME -> HomeScreen()
+                Tab.HOME -> HomeScreen(onOpenFeed = onOpenFeed)
                 Tab.TOMOS -> TomosScreen(onOpenSummon = onOpenSummon)
                 Tab.HISTORY -> HistoryScreen()
+                Tab.SOCIAL -> SocialScreen()
             }
         }
     }

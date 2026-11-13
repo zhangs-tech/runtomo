@@ -68,6 +68,7 @@ import java.text.NumberFormat
 
 @Composable
 fun HomeScreen(
+    onOpenFeed: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -92,6 +93,7 @@ fun HomeScreen(
             onDismissMissedYou = viewModel::dismissMissedYou,
             onDismissError = viewModel::dismissError,
             onSignOut = viewModel::signOut,
+            onFeed = onOpenFeed,
         ),
         modifier = modifier,
     )
@@ -106,6 +108,7 @@ data class HomeActions(
     val onDismissMissedYou: () -> Unit = {},
     val onDismissError: () -> Unit = {},
     val onSignOut: () -> Unit = {},
+    val onFeed: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -190,7 +193,7 @@ private fun HomeBody(home: HomeData, uiState: HomeUiState, actions: HomeActions)
         }
         home.tomo?.let { tomo ->
             if (uiState.showMissedYou) MissedYouCard(tomo.nickname, actions.onDismissMissedYou)
-            TomoCard(tomo, home.mood, home.today.steps, home.speechBubbleOneIn)
+            TomoCard(tomo, home.mood, home.today.steps, home.speechBubbleOneIn, onFeed = actions.onFeed, canFeed = !uiState.isOffline)
         }
         TodayCard(home)
         when (uiState.stepsAccess) {

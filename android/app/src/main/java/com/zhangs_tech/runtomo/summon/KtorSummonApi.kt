@@ -2,6 +2,7 @@ package com.zhangs_tech.runtomo.summon
 
 import com.zhangs_tech.runtomo.network.AuthenticatedClient
 import com.zhangs_tech.runtomo.network.apiCall
+import com.zhangs_tech.runtomo.network.problem
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
@@ -16,14 +17,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class KtorSummonApi @Inject constructor(
     @AuthenticatedClient private val httpClient: HttpClient,
 ) : SummonApi {
-    private val json = Json { ignoreUnknownKeys = true }
-
     override suspend fun getBanner(code: String): Banner = apiCall { httpClient.get("banners/$code").body() }
 
     override suspend fun summon(bannerCode: String): SummonAttempt = apiCall {
@@ -35,8 +33,8 @@ class KtorSummonApi @Inject constructor(
         when {
             response.status.isSuccess() -> SummonAttempt.Success(response.body())
             response.status == HttpStatusCode.Conflict -> {
-                val problem = json.decodeFromString<NotEnoughCoinsProblem>(response.bodyAsText())
-                SummonAttempt.NotEnoughCoins(problem.shortfall, problem.distanceNeededM)
+                val problem = response.problem()
+                SummonAttempt.NotEnoughCoins(problem?.shortfall ?: 0, problem?.distanceNeededM ?: 0)
             }
             else -> throw ResponseException(response, response.bodyAsText())
         }
@@ -49,6 +47,3 @@ class KtorSummonApi @Inject constructor(
 
 @Serializable
 private data class SummonRequest(val bannerCode: String)
-
-@Serializable
-private data class NotEnoughCoinsProblem(val shortfall: Long, val distanceNeededM: Long)
