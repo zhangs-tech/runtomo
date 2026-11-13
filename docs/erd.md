@@ -102,7 +102,7 @@ erDiagram
         uuid user_id FK
         string quest_code "game data"
         date local_date "UTC+7, UK with user_id, quest_code"
-        timestamp claimed_at "auto-claimed later if the day ends first (UC-13 4a)"
+        timestamp claimed_at "the Player claims on the same day, or never (UC-13 4a)"
     }
 
     %% ---------- Feeding (Should) ----------

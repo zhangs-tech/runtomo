@@ -31,7 +31,7 @@ One of these happens:
 
 ## Alternate / Exception Flows
 
-- **4a. The day ends with completed quests not yet claimed:** The System claims them automatically, so the Player never loses a reward they earned.
+- **4a. The day ends with completed quests not yet claimed:** The quests reset, and the Player does not get those rewards. The Player must claim each reward on the day they complete the quest.
 
 ## Postconditions
 
@@ -69,7 +69,6 @@ sequenceDiagram
 
     P->>A: Open the quests panel
     A->>S: GET /quests/today
-    S->>S: Claim completed, unclaimed quests from earlier days
     S-->>A: Quests with progress and reward
     A-->>P: Progress bars, Claim on completed quests
     Note over S: After each sync (UC-05 step 7), the server updates today's quests from today's distance and steps
@@ -85,5 +84,5 @@ sequenceDiagram
 - The quest list (code, title, metric `distance_m` or `steps`, target, reward) is hard-coded in server config, not stored in the database.
 - Progress is not stored. It is today's `distance_m` or `steps` from `daily_stats`, so it always matches the day's totals.
 - A claim is a `quest_claims` row (`user_id`, `quest_code`, `local_date`). That key is unique, so a quest pays once per day. `POST /quests/{code}/claim` claims for today.
-- The server needs no midnight job. When the Player opens the app or syncs, the server claims any completed, unclaimed quests from earlier days (4a) by checking those days' `daily_stats`.
+- The server needs no midnight job. Progress comes from today's `daily_stats` row, so the quests reset when the UTC+7 date changes. Only the Player's claim pays a reward (4a).
 - Claiming adds a `coin_transactions` row with reason `quest` and `ref_id` = the `quest_claims` row. Quest coins are not added to `daily_stats.activity_coins` (BR-2).
