@@ -38,3 +38,10 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Env ###
+.env
+
+keys/
+*.pub
+*.key

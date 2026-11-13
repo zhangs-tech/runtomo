@@ -4,6 +4,6 @@ import jakarta.validation.constraints.NotBlank
 
 
 data class SignInRequest(
-    @NotBlank
+    @field:NotBlank
     val idToken: String
 )
