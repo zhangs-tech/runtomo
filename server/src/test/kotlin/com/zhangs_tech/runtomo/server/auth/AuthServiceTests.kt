@@ -55,6 +55,22 @@ class AuthServiceTests {
     }
 
     @Test
+    fun `sign in uses Runner plus 4 digits when the Google profile has no name`() {
+        val userRepository = InMemoryUserRepository()
+        val authService = AuthService(
+            identityVerifier,
+            userRepository,
+            FriendCodeGenerator(),
+            tokenService,
+            InMemoryRefreshTokenRepository()
+        )
+
+        authService.signIn("sub-1")
+
+        assertTrue(userRepository.users.single().displayName.matches(Regex("Runner\\d{4}")))
+    }
+
+    @Test
     fun `refresh revokes the old token and issues a new one in the same family`() {
         val oldToken = authService.signIn("sub-1").refreshToken
 

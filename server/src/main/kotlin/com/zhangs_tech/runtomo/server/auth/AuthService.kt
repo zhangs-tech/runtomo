@@ -2,6 +2,7 @@ package com.zhangs_tech.runtomo.server.auth
 
 import com.zhangs_tech.runtomo.server.auth.dto.RefreshTokenResponse
 import com.zhangs_tech.runtomo.server.auth.dto.SignInResponse
+import com.zhangs_tech.runtomo.server.user.DisplayName
 import com.zhangs_tech.runtomo.server.user.FriendCodeGenerator
 import com.zhangs_tech.runtomo.server.user.User
 import com.zhangs_tech.runtomo.server.user.UserRepository
@@ -79,7 +80,7 @@ class AuthService(
         repeat(MAX_FRIEND_CODE_ATTEMPTS) {
             userRepository.create(
                 authSubject = identity.subject,
-                displayName = identity.email,
+                displayName = DisplayName.defaultFor(identity.name),
                 friendCode = friendCodeGenerator.generate()
             )?.let { return it }
         }

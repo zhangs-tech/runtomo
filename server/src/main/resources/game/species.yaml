@@ -1,0 +1,19 @@
+# Species codes are permanent. Never rename or delete one (docs/erd.md).
+runtomo:
+  game:
+    species:
+      - code: luppy
+        name: Luppy
+        rarity: common
+        starter: true
+        description: Luppy runs hot. Take it out for a jog and it will keep pace with you for kilometers, the flame-shaped tuft on its tail bouncing the whole way.
+      - code: rocky
+        name: Rocky
+        rarity: common
+        starter: true
+        description: Rocky is in no hurry. It is as steady as a stone and loves long walks, happily following you wherever the path goes.
+      - code: aeroblast
+        name: Aeroblast
+        rarity: common
+        starter: true
+        description: Aeroblast is quick as the wind. Short, fast sprints are its favorite thing, and it is always the first one off the starting line.

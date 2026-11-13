@@ -42,6 +42,31 @@ class PostgresUserRepository(private val jdbcClient: JdbcClient) : UserRepositor
             .optional()
             .orElse(null)
 
+    override fun lockById(id: UUID): User? =
+        jdbcClient
+            .sql("SELECT $USER_COLUMNS FROM users WHERE id = :id FOR UPDATE")
+            .param("id", id)
+            .query(USER_ROW_MAPPER)
+            .optional()
+            .orElse(null)
+
+    override fun updateDisplayName(id: UUID, displayName: String): User? =
+        jdbcClient
+            .sql("UPDATE users SET display_name = :displayName WHERE id = :id RETURNING $USER_COLUMNS")
+            .param("id", id)
+            .param("displayName", displayName)
+            .query(USER_ROW_MAPPER)
+            .optional()
+            .orElse(null)
+
+    override fun setEquippedTomo(id: UUID, tomoId: UUID) {
+        jdbcClient
+            .sql("UPDATE users SET equipped_tomo_id = :tomoId WHERE id = :id")
+            .param("id", id)
+            .param("tomoId", tomoId)
+            .update()
+    }
+
     private companion object {
         const val USER_COLUMNS =
             "id, auth_subject, display_name, friend_code, coin_balance, equipped_tomo_id, created_at"
