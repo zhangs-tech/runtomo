@@ -4,7 +4,7 @@ These are the use cases for the RunTomo MVP. They describe the core loop:
 
 **Walk / Run → Earn TomoCoins + Bond → Care for Tomo → Summon new Tomos → Keep Moving**
 
-These use cases exclude features outside the MVP on purpose. Those features are GPS run tracking, checks that steps are real, battles, trading, skins, achievements, clubs, location sharing, events, habitats and extra currencies. See `RunTomo_Idea.md` §45 for the roadmap.
+These use cases exclude features outside the MVP on purpose. Those features are GPS run tracking, checks that steps are real, battles, trading, skins, achievements, guest mode, clubs, location sharing, events, habitats and extra currencies. See `RunTomo_Idea.md` §45 for the roadmap.
 
 ## Actors
 

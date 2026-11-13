@@ -53,14 +53,11 @@ The Guest opens the app.
 - BR-6: The System links the account to the Google account itself, not to its email address. If the Player changes their Google email, they keep their RunTomo account.
 - BR-7: A Player who opens the app at least once every 30 days stays signed in *(tunable)*.
 - BR-8: Signing out signs the Player out on that device only.
+- BR-9: A Guest cannot play before they sign in. There is no guest mode and no account linking later.
 
 ## Related
 
 - [UC-02 Choose Starter Tomo](UC-02-choose-starter-tomo.md)
-
-## Open Questions
-
-- Should guests be able to play before they sign in, and link an account later?
 
 ## Diagrams
 
