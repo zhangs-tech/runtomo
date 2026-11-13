@@ -1,6 +1,8 @@
 package com.zhangs_tech.runtomo.starter
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -22,12 +25,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -41,6 +48,7 @@ import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun ChooseStarterScreen(
@@ -48,7 +56,8 @@ fun ChooseStarterScreen(
     viewModel: ChooseStarterViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    BackHandler(enabled = uiState.isNaming, onBack = viewModel::cancelNaming)
+    BackHandler(enabled = uiState.isNaming && uiState.greeting == null, onBack = viewModel::cancelNaming)
+    BackHandler(enabled = uiState.greeting != null, onBack = viewModel::finishGreeting)
     ChooseStarterContent(
         uiState = uiState,
         onRetryLoad = viewModel::loadStarters,
@@ -57,6 +66,7 @@ fun ChooseStarterScreen(
         onNicknameChange = viewModel::onNicknameChange,
         onSave = viewModel::save,
         onCancelNaming = viewModel::cancelNaming,
+        onFinishGreeting = viewModel::finishGreeting,
         modifier = modifier,
     )
 }
@@ -70,6 +80,7 @@ fun ChooseStarterContent(
     onNicknameChange: (String) -> Unit,
     onSave: () -> Unit,
     onCancelNaming: () -> Unit,
+    onFinishGreeting: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -84,7 +95,9 @@ fun ChooseStarterContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val selected = uiState.selected
+            val greeting = uiState.greeting
             when {
+                greeting != null -> HelloStep(greeting, onFinishGreeting)
                 uiState.isLoading -> CircularProgressIndicator()
                 uiState.starters.isEmpty() -> LoadFailed(uiState.error, onRetryLoad)
                 uiState.isNaming && selected != null -> NicknameStep(
@@ -181,6 +194,34 @@ private fun ColumnScope.NicknameStep(
         TextButton(onClick = onBack) { Text(stringResource(R.string.back)) }
     }
 }
+
+/** UC-02 step 9: the new Tomo hops and says hello, then the app goes to the Home Screen. */
+@Composable
+private fun HelloStep(greeting: Greeting, onFinish: () -> Unit) {
+    val offsetY = remember { Animatable(0f) }
+    LaunchedEffect(greeting) {
+        repeat(HELLO_HOPS) {
+            offsetY.animateTo(-24f, tween(180))
+            offsetY.animateTo(0f, tween(220))
+        }
+        delay(HELLO_PAUSE_MILLIS)
+        onFinish()
+    }
+    Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 2.dp, shadowElevation = 2.dp) {
+        Text(
+            text = stringResource(R.string.starter_hello, greeting.nickname),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+        )
+    }
+    TomoArt(greeting.species, size = 160.dp, modifier = Modifier.graphicsLayer { translationY = offsetY.value.dp.toPx() })
+    Text(stringResource(R.string.starter_hello_body), textAlign = TextAlign.Center)
+    Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.starter_hello_continue)) }
+}
+
+private const val HELLO_HOPS = 3
+private const val HELLO_PAUSE_MILLIS = 1_800L
 
 @Composable
 private fun LoadFailed(error: StarterError?, onRetry: () -> Unit) {

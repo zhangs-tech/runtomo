@@ -93,4 +93,39 @@ class ChooseStarterContentTest {
         composeRule.onNodeWithText(composeRule.activity.getString(R.string.retry)).performClick()
         assertEquals(1, retries)
     }
+
+    @Test
+    fun greeting_saysHelloThenFinishes() {
+        var finished = 0
+        composeRule.mainClock.autoAdvance = false
+        composeRule.setContent {
+            ChooseStarterContent(
+                uiState = ChooseStarterUiState(starters = starters, isLoading = false, greeting = Greeting(starters[0], "Mochi")),
+                onRetryLoad = {}, onSelect = {}, onConfirmSelection = {}, onNicknameChange = {}, onSave = {}, onCancelNaming = {},
+                onFinishGreeting = { finished++ },
+            )
+        }
+
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.starter_hello, "Mochi")).assertIsDisplayed()
+        assertEquals(0, finished)
+        composeRule.mainClock.advanceTimeBy(4_000)
+        assertEquals(1, finished)
+    }
+
+    @Test
+    fun greeting_tapContinue_finishes() {
+        var finished = 0
+        composeRule.setContent {
+            ChooseStarterContent(
+                uiState = ChooseStarterUiState(starters = starters, isLoading = false, greeting = Greeting(starters[0], "Mochi")),
+                onRetryLoad = {}, onSelect = {}, onConfirmSelection = {}, onNicknameChange = {}, onSave = {}, onCancelNaming = {},
+                onFinishGreeting = { finished++ },
+            )
+        }
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.starter_hello_continue)).performClick()
+
+        assertEquals(1, finished)
+    }
 }

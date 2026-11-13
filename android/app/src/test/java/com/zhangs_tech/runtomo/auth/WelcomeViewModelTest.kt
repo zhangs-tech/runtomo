@@ -1,9 +1,9 @@
 package com.zhangs_tech.runtomo.auth
 
-import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.zhangs_tech.runtomo.MainDispatcherRule
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.network.ApiException
 import com.zhangs_tech.runtomo.user.FakeUserApi
 import org.junit.Assert.assertEquals

@@ -1,11 +1,11 @@
 package com.zhangs_tech.runtomo.starter
 
-import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.MainDispatcherRule
 import com.zhangs_tech.runtomo.auth.AuthRepository
 import com.zhangs_tech.runtomo.auth.FakeAuthApi
 import com.zhangs_tech.runtomo.auth.FakeTokenStore
 import com.zhangs_tech.runtomo.auth.SessionState
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.network.ApiException
 import com.zhangs_tech.runtomo.tomo.FakeTomoApi
 import com.zhangs_tech.runtomo.user.FakeUserApi
@@ -66,7 +66,7 @@ class ChooseStarterViewModelTest {
     }
 
     @Test
-    fun save_createsStarterAndIsReady() {
+    fun save_createsStarterAndSaysHello() {
         viewModel.select(luppy)
         viewModel.confirmSelection()
         viewModel.onNicknameChange(" Mochi ")
@@ -74,7 +74,26 @@ class ChooseStarterViewModelTest {
         viewModel.save()
 
         assertEquals(listOf("luppy" to "Mochi"), tomoApi.chosenStarters)
+        assertEquals(Greeting(luppy, "Mochi"), viewModel.uiState.value.greeting)
+        assertEquals(SessionState.Loading, authRepository.sessionState.value)
+    }
+
+    @Test
+    fun finishGreeting_goesToHome() {
+        viewModel.select(luppy)
+        viewModel.confirmSelection()
+        viewModel.save()
+
+        viewModel.finishGreeting()
+
         assertEquals(SessionState.Ready, authRepository.sessionState.value)
+    }
+
+    @Test
+    fun finishGreeting_beforeSave_doesNothing() {
+        viewModel.finishGreeting()
+
+        assertEquals(SessionState.Loading, authRepository.sessionState.value)
     }
 
     @Test
@@ -112,6 +131,6 @@ class ChooseStarterViewModelTest {
 
         viewModel.save()
 
-        assertEquals(SessionState.Ready, authRepository.sessionState.value)
+        assertEquals(Greeting(luppy, "Luppy"), viewModel.uiState.value.greeting)
     }
 }

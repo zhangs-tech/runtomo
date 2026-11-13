@@ -17,6 +17,9 @@ import javax.inject.Inject
 
 enum class StarterError { NoConnection, Failed, InvalidNickname }
 
+/** The new Tomo says hello before the Home Screen (UC-02 step 9). */
+data class Greeting(val species: Species, val nickname: String)
+
 data class ChooseStarterUiState(
     val starters: List<Species> = emptyList(),
     val isLoading: Boolean = true,
@@ -25,6 +28,7 @@ data class ChooseStarterUiState(
     val isNaming: Boolean = false,
     val nickname: String = "",
     val isSaving: Boolean = false,
+    val greeting: Greeting? = null,
     val error: StarterError? = null,
 )
 
@@ -85,14 +89,24 @@ class ChooseStarterViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 tomoApi.chooseStarter(species.code, nickname)
-                authRepository.onStarterTomoChosen()
+                greet(species, nickname)
             } catch (e: ApiException.Conflict) {
                 // An earlier request worked, but its response was lost.
-                authRepository.onStarterTomoChosen()
+                greet(species, nickname)
             } catch (e: ApiException) {
                 _uiState.update { it.copy(isSaving = false, error = e.toStarterError()) }
             }
         }
+    }
+
+    private fun greet(species: Species, nickname: String) {
+        _uiState.update { it.copy(isSaving = false, greeting = Greeting(species, nickname)) }
+    }
+
+    /** The hello animation finished, or the Player skipped it. */
+    fun finishGreeting() {
+        if (_uiState.value.greeting == null) return
+        authRepository.onStarterTomoChosen()
     }
 
     private fun ApiException.toStarterError() =

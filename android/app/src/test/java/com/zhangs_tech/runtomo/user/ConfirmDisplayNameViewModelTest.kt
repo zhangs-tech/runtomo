@@ -1,11 +1,11 @@
 package com.zhangs_tech.runtomo.user
 
-import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.MainDispatcherRule
 import com.zhangs_tech.runtomo.auth.AuthRepository
 import com.zhangs_tech.runtomo.auth.FakeAuthApi
 import com.zhangs_tech.runtomo.auth.FakeTokenStore
 import com.zhangs_tech.runtomo.auth.SessionState
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.network.ApiException
 import org.junit.Assert.assertEquals
 import org.junit.Rule
