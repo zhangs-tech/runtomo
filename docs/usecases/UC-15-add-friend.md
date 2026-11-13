@@ -44,7 +44,7 @@ The Player opens **Social → Add Friend**.
 - BR-1: A Player can have at most 100 friends *(tunable)*.
 - BR-2: Friends can see only:
   - display name
-  - displayed Tomo
+  - displayed Tomo (their equipped Tomo)
   - distance for today, this week and this month
 
   The System shares no location or routes in the MVP.
@@ -54,10 +54,10 @@ The Player opens **Social → Add Friend**.
 
 - [UC-16 View Friend Leaderboard](UC-16-view-friend-leaderboard.md)
 
-## Open Questions
+## Decisions
 
-- Should invite links (deep links) be part of the MVP, or only codes?
-- Are push notifications part of the MVP?
+- Friend codes are the only way to connect in the MVP. **Share** sends the code as text. Invite links (deep links) come later.
+- No push notifications in the MVP.
 
 ## Diagrams
 
@@ -87,9 +87,6 @@ sequenceDiagram
             A-->>P: Friend added
         else No request from the other Player
             S->>S: Check the friend limit, save a pending request
-            opt Push notifications are in the MVP
-                S-->>B: Push notification
-            end
             F->>B: Open requests
             B->>S: GET /friend-requests
             S-->>B: Pending requests
@@ -113,4 +110,4 @@ sequenceDiagram
 - A friendship is one `friendships` row per pair, with the smaller user ID in `user_a_id`. Queries must check both columns.
 - The server checks the 100-friend limit (BR-1) when a Player sends a request, and again when the other Player accepts it.
 - Removing a friend: `DELETE /friends/{userId}` deletes the `friendships` row.
-- Without push notifications, the other Player sees the request the next time they open their requests.
+- There are no push notifications, so the other Player sees the request the next time they open their requests.

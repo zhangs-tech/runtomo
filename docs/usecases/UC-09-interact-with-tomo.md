@@ -26,8 +26,7 @@ The Player taps or strokes the Tomo.
 
 ## Alternate / Exception Flows
 
-- **2a. The Tomo is sleeping (at night):** It opens one eye, then sleeps again.
-- **2b. The Player taps many times quickly:** The Tomo plays a playful "too much!" reaction.
+- **2a. The Player taps many times quickly:** The Tomo plays a playful "too much!" reaction.
 
 ## Postconditions
 
@@ -57,9 +56,7 @@ sequenceDiagram
     participant S as Server
 
     P->>A: Tap the Tomo
-    alt Tomo is sleeping (night)
-        A-->>P: Opens one eye, sleeps again
-    else Many quick taps
+    alt Many quick taps
         A-->>P: Too much! reaction
     else Normal tap
         A-->>P: Reaction animation for the current mood

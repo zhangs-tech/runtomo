@@ -72,9 +72,12 @@ The Player opens **Tomos → Summon**.
 
 ## Open Questions
 
-- What is the MVP roster: 8–10 species, and how many at each rarity?
-- Should there be a 10-summon option?
-- Should the first summon always give Rare or higher, as an onboarding hook?
+- What is the MVP roster: 8–10 species, and how many at each rarity? Until then, the pool is the 3 starters ([docs/tomos](../tomos/README.md)).
+
+## Decisions
+
+- No 10-summon option in the MVP.
+- The first summon has no guaranteed rarity.
 
 ## Diagrams
 

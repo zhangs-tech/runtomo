@@ -75,9 +75,9 @@ A sync brings new distance for today.
 - [UC-06 View New Rewards](UC-06-view-new-rewards.md)
 - [UC-13 Complete Daily Quests](UC-13-complete-daily-quests.md)
 
-## Open Questions
+## Decisions
 
-- Is there a separate Player XP / Player Level in the MVP, or only Tomo Bond?
+- The MVP has no Player XP or Player Level. Only Tomo Bond grows.
 
 ## Diagrams
 

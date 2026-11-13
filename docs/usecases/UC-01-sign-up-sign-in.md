@@ -37,7 +37,7 @@ The Guest opens the app.
 - **3b. The device has no Google account:** The System shows a message that RunTomo needs a Google account to sign in.
 - **4a. The device is offline:** The System shows a "No connection" message with a retry button.
 - **4b. Google cannot verify the Guest's identity:** The System shows an error and returns to step 1.
-- **7a. The display name is invalid** (too short, too long or blocked word): The System shows the rule and asks again.
+- **7a. The display name is invalid** (too short or too long): The System shows the rule and asks again. The MVP has no blocked-word check.
 
 ## Postconditions
 

@@ -53,10 +53,10 @@ The Player taps **Feed** on the Home Screen.
 - [UC-08 View Home Screen](UC-08-view-home-screen.md)
 - [UC-10 Update Tomo Mood](UC-10-update-tomo-mood.md)
 
-## Open Questions
+## Decisions
 
-- Should species have favorite or disliked foods in the MVP, or later?
-- Does feeding change the mood, for example to Happy for 1 hour?
+- Favorite or disliked foods come later, not in the MVP.
+- Feeding does not change the mood ([UC-10](UC-10-update-tomo-mood.md) BR-4).
 
 ## Diagrams
 
@@ -88,7 +88,7 @@ sequenceDiagram
         A-->>P: Full animation
     else Under the limit
         S->>S: Use 1 item, save the feeding, add Bond
-        S-->>A: New Bond and mood
+        S-->>A: New Bond
         A-->>P: Eating animation and happy reaction
     end
 ```

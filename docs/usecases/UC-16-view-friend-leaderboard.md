@@ -44,9 +44,9 @@ The Player opens **Social → Leaderboard**.
 - [UC-15 Add Friend](UC-15-add-friend.md)
 - [UC-03 Sync Daily Activity](UC-03-sync-daily-activity.md)
 
-## Open Questions
+## Decisions
 
-- Should the top friend each week get a small reward or badge?
+- The top friend each week gets no reward or badge in the MVP.
 
 ## Diagrams
 

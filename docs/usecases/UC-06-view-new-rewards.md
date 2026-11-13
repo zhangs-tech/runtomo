@@ -48,9 +48,9 @@ A sync finishes with new rewards.
 - [UC-05 Calculate Daily Rewards](UC-05-calculate-daily-rewards.md)
 - [UC-08 View Home Screen](UC-08-view-home-screen.md)
 
-## Open Questions
+## Decisions
 
-- Should the Player be able to share the reward screen as an image in the MVP?
+- The Player cannot share the reward screen as an image in the MVP.
 
 ## Diagrams
 

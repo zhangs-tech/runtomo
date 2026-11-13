@@ -53,9 +53,9 @@ The Player opens the app, or taps the **Home** tab.
 - [UC-09 Interact With Tomo](UC-09-interact-with-tomo.md)
 - [UC-10 Update Tomo Mood](UC-10-update-tomo-mood.md)
 
-## Open Questions
+## Decisions
 
-- Should the Player be able to set their own daily goal?
+- The Player cannot set their own daily goal in the MVP.
 
 ## Diagrams
 
