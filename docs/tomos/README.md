@@ -1,6 +1,6 @@
 # Tomo Species (MVP)
 
-Each file in this folder describes one Tomo species: its name, rarity and the look of its default skin. The **Appearance** section of each file is a complete prompt. You can paste it into an image generator as it is. For extended asset generation prompts (movement sprites, UI avatars, mood expression sheets, and platform settings), see [prompts.md](prompts.md).
+Each file in this folder describes one Tomo species: its name, rarity and look. The **Appearance** section of each file is a complete prompt. You can paste it into an image generator as it is. For extended asset generation prompts (movement sprites, UI avatars, mood expression sheets, and platform settings), see [prompts.md](prompts.md).
 
 ## Roster
 
@@ -56,15 +56,13 @@ Keep these rules when you add a species:
 
 ## Fields
 
-The fields map to the `species` table in `server/migrations/000001_init.up.sql`:
+Species are game data, not database rows. The fields go in the server's species resource file (`server/src/main/resources/game/`). Player data refers to a species by its code ([ERD](../erd.md)).
 
-| Field | Column |
+| Field | Game data |
 |---|---|
-| Name | `species.name` |
-| Code | `species.code` |
-| Rarity | `species.rarity` |
-| Starter | `species.is_starter` |
-| In gacha pool | `species.in_gacha_pool` |
-| Element hint | None yet. Add a column if elements are added. |
-
-The Appearance section describes the species' default skin (`skins.is_default`).
+| Name | name |
+| Code | code (permanent, never renamed) |
+| Rarity | rarity |
+| Starter | starter flag |
+| In gacha pool | in a banner's species list, with a weight ([UC-12](../usecases/UC-12-summon-tomo.md)) |
+| Element hint | None yet. Add a field if elements are added. |
