@@ -35,21 +35,26 @@ android {
             "GOOGLE_WEB_CLIENT_ID",
             "\"${localProperties.getProperty("runtomo.googleWebClientId", "")}\"",
         )
-        buildConfigField(
-            "String",
-            "API_BASE_URL",
-            "\"${localProperties.getProperty("runtomo.apiBaseUrl", "http://localhost:8080/")}\"",
-        )
     }
 
     buildTypes {
         debug {
             enableUnitTestCoverage = true
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${localProperties.getProperty("runtomo.apiBaseUrl", "http://localhost:8080/")}\"",
+            )
         }
         release {
             optimization {
                 enable = false
             }
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://runtomo.knathanael.com/\"",
+            )
         }
     }
     compileOptions {
