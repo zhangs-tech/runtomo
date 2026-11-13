@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.zhangs_tech.runtomo.HiltTestActivity
 import com.zhangs_tech.runtomo.R
@@ -28,7 +29,7 @@ class RuntomoNavDisplayTest {
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<HiltTestActivity>()
 
-    private fun text(id: Int) = composeRule.activity.getString(id)
+    private fun text(id: Int, vararg args: Any) = composeRule.activity.getString(id, *args)
 
     @Test
     fun signedOut_showsWelcome() {
@@ -52,10 +53,38 @@ class RuntomoNavDisplayTest {
     }
 
     @Test
-    fun ready_showsHome() {
+    fun ready_showsMainTabs() {
         composeRule.setContent { RuntomoNavDisplay(SessionState.Ready) }
 
-        composeRule.onNodeWithText(text(R.string.home_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.tab_tomos)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.tab_history)).assertIsDisplayed()
+    }
+
+    @Test
+    fun tomosTab_openSummon_thenBackReturnsToTomos() {
+        composeRule.setContent { RuntomoNavDisplay(SessionState.Ready) }
+
+        composeRule.onNodeWithText(text(R.string.tab_tomos)).performClick()
+        composeRule.onNodeWithText(text(R.string.tomos_collected, 2, 3)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.summon)).performClick()
+        composeRule.onNodeWithText("Standard Egg").assertIsDisplayed()
+
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+
+        composeRule.onNodeWithText("Standard Egg").assertDoesNotExist()
+        composeRule.onNodeWithText(text(R.string.tomos_collected, 2, 3)).assertIsDisplayed()
+    }
+
+    @Test
+    fun backOnOtherTab_returnsToHomeTab() {
+        composeRule.setContent { RuntomoNavDisplay(SessionState.Ready) }
+        composeRule.onNodeWithText(text(R.string.tab_history)).performClick()
+        composeRule.onNodeWithText(text(R.string.history_this_week)).assertIsDisplayed()
+
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+
+        composeRule.onNodeWithText(text(R.string.history_this_week)).assertDoesNotExist()
+        assertTrue(!composeRule.activity.isFinishing)
     }
 
     @Test
@@ -76,7 +105,7 @@ class RuntomoNavDisplayTest {
         composeRule.onNodeWithText(text(R.string.welcome_title)).assertDoesNotExist()
 
         sessionState = SessionState.Ready
-        composeRule.onNodeWithText(text(R.string.home_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.tab_tomos)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.choose_starter_title)).assertDoesNotExist()
     }
 
@@ -96,6 +125,6 @@ class RuntomoNavDisplayTest {
 
         restorationTester.emulateSavedInstanceStateRestore()
 
-        composeRule.onNodeWithText(text(R.string.home_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.tab_tomos)).assertIsDisplayed()
     }
 }

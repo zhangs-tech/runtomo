@@ -21,6 +21,8 @@ data class HomeData(
     val quests: List<Quest>,
     /** ISO date of the newest synced day, or null if the Player never synced. */
     val lastSyncDate: String?,
+    /** UC-09 BR-3: a tap on the Tomo shows a speech bubble 1 time in this many. */
+    val speechBubbleOneIn: Int = 3,
 ) {
     /** Applies the totals of a newer sync. */
     fun withSync(sync: DaySync): HomeData = copy(

@@ -63,7 +63,6 @@ import com.zhangs_tech.runtomo.tomo.Mood
 import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.Tomo
-import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 import java.text.NumberFormat
 
@@ -191,7 +190,7 @@ private fun HomeBody(home: HomeData, uiState: HomeUiState, actions: HomeActions)
         }
         home.tomo?.let { tomo ->
             if (uiState.showMissedYou) MissedYouCard(tomo.nickname, actions.onDismissMissedYou)
-            TomoCard(tomo, home.mood)
+            TomoCard(tomo, home.mood, home.today.steps, home.speechBubbleOneIn)
         }
         TodayCard(home)
         when (uiState.stepsAccess) {
@@ -213,22 +212,6 @@ private fun MissedYouCard(nickname: String, onDismiss: () -> Unit) {
             Text(stringResource(R.string.missed_you, nickname), modifier = Modifier.weight(1f))
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.dismiss)) }
         }
-    }
-}
-
-@Composable
-private fun TomoCard(tomo: Tomo, mood: Mood) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        TomoArt(tomo.species, size = 160.dp)
-        Text(tomo.nickname, style = MaterialTheme.typography.headlineMedium)
-        Text(
-            text = stringResource(R.string.tomo_status, stringResource(mood.labelRes), tomo.bondLevel),
-            style = MaterialTheme.typography.titleMedium,
-        )
     }
 }
 
@@ -335,16 +318,6 @@ private val HomeError.messageRes: Int
     get() = when (this) {
         HomeError.NoConnection -> R.string.error_no_connection
         HomeError.Failed -> R.string.error_generic
-    }
-
-@get:StringRes
-private val Mood.labelRes: Int
-    get() = when (this) {
-        Mood.SLEEPY -> R.string.mood_sleepy
-        Mood.EXCITED -> R.string.mood_excited
-        Mood.HAPPY -> R.string.mood_happy
-        Mood.RELAXED -> R.string.mood_relaxed
-        Mood.BORED -> R.string.mood_bored
     }
 
 internal val previewHome = HomeData(

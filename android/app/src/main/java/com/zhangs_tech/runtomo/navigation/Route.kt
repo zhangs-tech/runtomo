@@ -14,6 +14,10 @@ sealed interface Route : NavKey {
     @Serializable
     data object ChooseStarter : Route
 
+    /** The signed-in app with its bottom navigation tabs. */
     @Serializable
-    data object Home : Route
+    data object Main : Route
+
+    @Serializable
+    data object Summon : Route
 }
