@@ -59,6 +59,7 @@ import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.core.formatKm
 import com.zhangs_tech.runtomo.tomo.SpeciesSilhouette
 import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.tomo.TomoPose
 import kotlinx.coroutines.launch
 
 private enum class SocialSection(val labelRes: Int) {
@@ -397,7 +398,7 @@ private fun PlayerCardDialog(
 @Composable
 private fun PlayerTomoArt(player: PlayerCard, size: Int = 40) {
     val tomo = player.tomo
-    if (tomo != null) TomoArt(tomo.species, size = size.dp) else SpeciesSilhouette(size = size.dp)
+    if (tomo != null) TomoArt(tomo.species, size = size.dp, pose = TomoPose.AVATAR) else SpeciesSilhouette(null, size = size.dp)
 }
 
 @Composable

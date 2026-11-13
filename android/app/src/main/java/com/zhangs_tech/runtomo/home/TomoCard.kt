@@ -38,6 +38,7 @@ import com.zhangs_tech.runtomo.tomo.Mood
 import com.zhangs_tech.runtomo.tomo.Tomo
 import com.zhangs_tech.runtomo.tomo.TomoArt
 import com.zhangs_tech.runtomo.tomo.TomoProfileDialog
+import com.zhangs_tech.runtomo.tomo.pose
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
 
@@ -86,7 +87,8 @@ fun TomoCard(tomo: Tomo, mood: Mood, todaySteps: Int, speechBubbleOneIn: Int, on
         }
         TomoArt(
             species = tomo.species,
-            size = 160.dp,
+            size = 200.dp,
+            pose = mood.pose,
             modifier = Modifier
                 .graphicsLayer {
                     scaleX = scale.value

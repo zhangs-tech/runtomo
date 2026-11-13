@@ -157,7 +157,7 @@ fun HomeContent(uiState: HomeUiState, actions: HomeActions, modifier: Modifier =
         }
     }
 
-    uiState.rewards?.let { RewardDialog(it, actions.onDismissRewards) }
+    uiState.rewards?.let { RewardDialog(it, uiState.home?.tomo?.species, actions.onDismissRewards) }
 }
 
 @Composable

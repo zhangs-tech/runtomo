@@ -47,6 +47,7 @@ import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.tomo.TomoPose
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 import kotlinx.coroutines.delay
 
@@ -167,7 +168,7 @@ private fun ColumnScope.NicknameStep(
     onSave: () -> Unit,
     onBack: () -> Unit,
 ) {
-    TomoArt(species, size = 128.dp)
+    TomoArt(species, size = 128.dp, pose = TomoPose.HAPPY)
     Text(
         text = stringResource(R.string.nickname_title, species.name),
         style = MaterialTheme.typography.headlineSmall,
@@ -215,7 +216,7 @@ private fun HelloStep(greeting: Greeting, onFinish: () -> Unit) {
             textAlign = TextAlign.Center,
         )
     }
-    TomoArt(greeting.species, size = 160.dp, modifier = Modifier.graphicsLayer { translationY = offsetY.value.dp.toPx() })
+    TomoArt(greeting.species, size = 160.dp, pose = TomoPose.EXCITED, modifier = Modifier.graphicsLayer { translationY = offsetY.value.dp.toPx() })
     Text(stringResource(R.string.starter_hello_body), textAlign = TextAlign.Center)
     Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.starter_hello_continue)) }
 }

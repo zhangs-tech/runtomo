@@ -21,6 +21,9 @@ import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.activity.CompletedQuest
 import com.zhangs_tech.runtomo.activity.Rewards
 import com.zhangs_tech.runtomo.core.formatKm
+import com.zhangs_tech.runtomo.tomo.Species
+import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.tomo.TomoPose
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
 
 /** Distance Together milestones in meters (UC-06 3a). */
@@ -34,20 +37,21 @@ fun crossedMilestoneM(rewards: Rewards): Long? {
 
 /** UC-06 View New Rewards. */
 @Composable
-fun RewardDialog(rewards: Rewards, onDone: () -> Unit) {
+fun RewardDialog(rewards: Rewards, species: Species?, onDone: () -> Unit) {
     Dialog(onDismissRequest = onDone) {
-        RewardContent(rewards, onDone)
+        RewardContent(rewards, onDone, species = species)
     }
 }
 
 @Composable
-fun RewardContent(rewards: Rewards, onDone: () -> Unit, modifier: Modifier = Modifier) {
+fun RewardContent(rewards: Rewards, onDone: () -> Unit, modifier: Modifier = Modifier, species: Species? = null) {
     Card(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            species?.let { TomoArt(it, size = 144.dp, pose = TomoPose.ACTIVITY) }
             val km = formatKm(rewards.distanceM)
             Text(
                 text = rewards.tomoNickname?.let { stringResource(R.string.rewards_walked, it, km) }

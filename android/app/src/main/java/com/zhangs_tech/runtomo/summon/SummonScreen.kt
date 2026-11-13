@@ -54,6 +54,7 @@ import com.zhangs_tech.runtomo.core.formatKm
 import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.tomo.TomoPose
 import com.zhangs_tech.runtomo.tomo.color
 import com.zhangs_tech.runtomo.tomo.labelRes
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
@@ -253,7 +254,7 @@ private fun Revealed(result: SummonResult, uiState: SummonUiState, actions: Summ
             modifier = Modifier.size(200.dp).background(species.rarity.color.copy(alpha = 0.25f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            TomoArt(species, size = 144.dp)
+            TomoArt(species, size = 160.dp, pose = TomoPose.EXCITED)
         }
         Text(result.tomo?.nickname ?: species.name, style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(species.rarity.labelRes), color = species.rarity.color, style = MaterialTheme.typography.titleMedium)

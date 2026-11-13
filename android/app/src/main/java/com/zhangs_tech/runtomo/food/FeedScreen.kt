@@ -44,6 +44,7 @@ import com.zhangs_tech.runtomo.R
 import com.zhangs_tech.runtomo.core.formatKm
 import com.zhangs_tech.runtomo.tomo.Tomo
 import com.zhangs_tech.runtomo.tomo.TomoArt
+import com.zhangs_tech.runtomo.tomo.TomoPose
 import com.zhangs_tech.runtomo.tomo.Rarity
 import com.zhangs_tech.runtomo.tomo.Species
 import com.zhangs_tech.runtomo.ui.theme.RuntomoTheme
@@ -178,7 +179,8 @@ private fun EatingTomo(tomo: Tomo, message: FeedMessage?) {
     }
     TomoArt(
         species = tomo.species,
-        size = 128.dp,
+        size = 160.dp,
+        pose = if (message is FeedMessage.Fed) TomoPose.HAPPY else TomoPose.DEFAULT,
         modifier = Modifier.graphicsLayer {
             scaleX = scale.value
             scaleY = scale.value

@@ -175,7 +175,7 @@ private fun CollectionCell(entry: CollectionEntry, isEquipped: Boolean, onClick:
                 )
             }
         } else {
-            SpeciesSilhouette(size = 88.dp)
+            SpeciesSilhouette(entry.species, size = 88.dp)
             Text(stringResource(R.string.unknown_species), style = MaterialTheme.typography.titleSmall)
         }
     }
@@ -236,7 +236,7 @@ private fun RenameDialog(tomo: Tomo, uiState: TomosUiState, actions: TomosAction
 private fun NotOwnedDialog(species: Species, actions: TomosActions) {
     AlertDialog(
         onDismissRequest = actions.onDismiss,
-        icon = { SpeciesSilhouette(size = 64.dp) },
+        icon = { SpeciesSilhouette(species, size = 96.dp) },
         title = { Text(species.name) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
