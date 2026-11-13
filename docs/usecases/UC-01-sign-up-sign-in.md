@@ -116,12 +116,12 @@ sequenceDiagram
         S-->>A: accessToken, refreshToken, expiresIn
         A->>A: Replace stored tokens
         A-->>P: Home Screen
-    else Token was already replaced (reuse)
+    else Token was already revoked (reuse)
         S->>S: Revoke every refresh token from this sign-in
         S-->>A: 401
         A->>A: Delete stored tokens
         A-->>P: Welcome screen
-    else Token is expired or revoked
+    else Token is expired
         S-->>A: 401
         A->>A: Delete stored tokens
         A-->>P: Welcome screen
@@ -151,5 +151,6 @@ sequenceDiagram
 - The app sends the Google ID token only at sign-in. All later requests use the server's access token (a JWT).
 - The access token lasts 15 minutes and the refresh token lasts 30 days *(tunable)*. Each refresh replaces the refresh token with a new 30-day one, which gives BR-7.
 - The server stores only a hash of each refresh token.
+- Every refresh token from one sign-in shares a family. The app deletes a token after it refreshes or signs out, so a revoked token that has not expired and is sent again counts as stolen, and the server revokes its whole family.
 - After sign-out, the access token stays valid until it expires.
 - `/auth/signin`, `/auth/refresh` and `/auth/signout` do not need an access token.

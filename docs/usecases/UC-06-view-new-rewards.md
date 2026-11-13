@@ -24,7 +24,7 @@ A sync finishes with new rewards.
    > +12 Bond · +120 TomoCoins
 2. If the Tomo reached a new Bond Level, the System plays a level-up animation.
 3. The System shows the new Distance Together total.
-4. The System shows any quests or achievements that this sync completed.
+4. The System shows any quests that this sync completed.
 5. The Player taps **Done** and returns to the Home Screen.
 
 ## Alternate / Exception Flows
@@ -40,7 +40,7 @@ A sync finishes with new rewards.
 ## Business Rules
 
 - BR-1: The Tomo's reaction message mentions the Tomo by nickname.
-- BR-2: The System shows the reward screen only when the new distance is at least 0.5 km *(tunable)*. A level-up or a completed quest or achievement always shows it.
+- BR-2: The System shows the reward screen only when the new distance is at least 0.5 km *(tunable)*. A level-up or a completed quest always shows it.
 
 ## Related
 
@@ -61,15 +61,15 @@ sequenceDiagram
     participant S as Server
 
     A->>S: PUT /me/days/{date} (UC-03)
-    S-->>A: New distance, coins, Bond, Bond Level before and after, Distance Together, completed quests and achievements
-    alt Under 0.5 km, with no level-up, quest or achievement
+    S-->>A: New distance, coins, Bond, Bond Level before and after, Distance Together, completed quests
+    alt Under 0.5 km, with no level-up or quest
         A-->>P: Home Screen numbers update, no reward screen
     else Otherwise
         A-->>P: Tomo reaction, using its nickname
         opt New Bond Level
             A-->>P: Level-up animation
         end
-        A-->>P: Distance Together, completed quests and achievements
+        A-->>P: Distance Together, completed quests
         P->>A: Tap Done
         A-->>P: Home Screen
     end

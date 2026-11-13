@@ -31,6 +31,7 @@ The Player opens **Social → Add Friend**.
 
 - **3a. No Player has this code:** The System shows "No player with this code".
 - **3b. It is the Player's own code, or they are already friends:** The System shows a message and stops.
+- **4a. The other Player already sent this Player a request:** The System links both Players as friends straight away, removes the other Player's request and shows that they are now friends.
 - **6a. The other Player declines:** The System discards the request and does not tell the sender.
 - **Remove friend:** From a friend's profile the Player taps **Remove**. The System removes the link for both Players and notifies neither.
 
@@ -80,21 +81,27 @@ sequenceDiagram
         A-->>P: Preview
         P->>A: Tap Send Request
         A->>S: POST /friend-requests (toUserId)
-        S->>S: Check the friend limit, save a pending request
-        opt Push notifications are in the MVP
-            S-->>B: Push notification
-        end
-        F->>B: Open requests
-        B->>S: GET /friend-requests
-        S-->>B: Pending requests
-        alt Accept
-            F->>B: Tap Accept
-            B->>S: POST /friend-requests/{id}/accept
-            S->>S: Check the friend limit, mark accepted, link both Players
-        else Decline
-            F->>B: Tap Decline
-            B->>S: POST /friend-requests/{id}/decline
-            S->>S: Mark declined, sender not told
+        alt The other Player already sent a request (4a)
+            S->>S: Check the friend limit, delete their request, link both Players
+            S-->>A: Now friends
+            A-->>P: Friend added
+        else No request from the other Player
+            S->>S: Check the friend limit, save a pending request
+            opt Push notifications are in the MVP
+                S-->>B: Push notification
+            end
+            F->>B: Open requests
+            B->>S: GET /friend-requests
+            S-->>B: Pending requests
+            alt Accept
+                F->>B: Tap Accept
+                B->>S: POST /friend-requests/{id}/accept
+                S->>S: Check the friend limit, delete the request, link both Players
+            else Decline
+                F->>B: Tap Decline
+                B->>S: POST /friend-requests/{id}/decline
+                S->>S: Delete the request, sender not told
+            end
         end
     end
 ```
@@ -102,7 +109,7 @@ sequenceDiagram
 ### Technical notes
 
 - Friend codes are `users.friend_code`, which is unique and created at sign-up ([UC-01](UC-01-sign-up-sign-in.md) BR-2).
-- Requests are `friend_requests` rows with status `pending`, `accepted` or `declined`. Each pair can have only one pending request. The server keeps a declined request, but the sender never sees its status.
+- Each `friend_requests` row is a pending request. Each pair can have only one, in either direction, because a request back to a sender links both Players instead (4a). The server deletes the row when the request is accepted or declined. The sender is not told about a decline and can send a new request.
 - A friendship is one `friendships` row per pair, with the smaller user ID in `user_a_id`. Queries must check both columns.
 - The server checks the 100-friend limit (BR-1) when a Player sends a request, and again when the other Player accepts it.
 - Removing a friend: `DELETE /friends/{userId}` deletes the `friendships` row.

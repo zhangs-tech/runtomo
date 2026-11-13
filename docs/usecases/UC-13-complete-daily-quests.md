@@ -22,7 +22,7 @@ One of these happens:
 
 ## Main Flow
 
-1. Each day at midnight UTC+7, the System gives the Player 3 new quests.
+1. Every Player has the same 3 quests every day (BR-1).
 2. The System shows each quest with a progress bar and its reward.
 3. After each sync, the System updates the progress of each quest.
 4. When a quest is complete, the System shows a **Claim** button on it.
@@ -39,7 +39,7 @@ One of these happens:
 
 ## Business Rules
 
-- BR-1: MVP quest list *(tunable)*:
+- BR-1: MVP quest list, the same for every Player every day *(tunable)*:
 
   | Quest | Reward |
   |---|---:|
@@ -57,7 +57,6 @@ One of these happens:
 
 ## Open Questions
 
-- Should the quests be the same every day, or drawn from a pool?
 - Should there be a bonus for completing all 3?
 
 ## Diagrams
@@ -71,12 +70,11 @@ sequenceDiagram
     P->>A: Open the quests panel
     A->>S: GET /quests/today
     S->>S: Claim completed, unclaimed quests from earlier days
-    S->>S: Create today's quests if missing
     S-->>A: Quests with progress and reward
     A-->>P: Progress bars, Claim on completed quests
     Note over S: After each sync (UC-05 step 7), the server updates today's quests from today's distance and steps
     P->>A: Tap Claim
-    A->>S: POST /quests/{id}/claim
+    A->>S: POST /quests/{code}/claim
     S->>S: Check it is complete and unclaimed, credit coins, mark claimed
     S-->>A: New balance
     A-->>P: Quest shown as claimed
@@ -84,7 +82,8 @@ sequenceDiagram
 
 ### Technical notes
 
-- Quest types are rows in `quest_definitions` (`metric` is `distance_m` or `steps`). Each day's quests are rows in `user_daily_quests` for the UTC+7 `local_date`.
-- The server creates a day's rows the first time it needs them that day, when the Player opens the app or syncs. The server needs no midnight job. At the same moment it claims any completed, unclaimed quests from earlier days (4a).
-- Claiming adds a `coin_transactions` row with reason `quest` and `ref_id` = the `user_daily_quests` row, so a quest can never pay twice. Quest coins are not added to `daily_stats.activity_coins` (BR-2).
-- Progress is today's `distance_m` or `steps` from `daily_stats`, so it always matches the day's totals.
+- The quest list (code, title, metric `distance_m` or `steps`, target, reward) is hard-coded in server config, not stored in the database.
+- Progress is not stored. It is today's `distance_m` or `steps` from `daily_stats`, so it always matches the day's totals.
+- A claim is a `quest_claims` row (`user_id`, `quest_code`, `local_date`). That key is unique, so a quest pays once per day. `POST /quests/{code}/claim` claims for today.
+- The server needs no midnight job. When the Player opens the app or syncs, the server claims any completed, unclaimed quests from earlier days (4a) by checking those days' `daily_stats`.
+- Claiming adds a `coin_transactions` row with reason `quest` and `ref_id` = the `quest_claims` row. Quest coins are not added to `daily_stats.activity_coins` (BR-2).

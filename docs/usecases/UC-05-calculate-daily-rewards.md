@@ -26,7 +26,7 @@ A sync brings new distance for today.
 4. The System adds the new distance to the equipped Tomo's **Distance Together**.
 5. The System adds the Bond points to the equipped Tomo. If this crosses a threshold, the Tomo reaches the next Bond Level.
 6. The System credits the TomoCoins to the Player's balance.
-7. The System updates progress on daily quests ([UC-13](UC-13-complete-daily-quests.md)) and achievements ([UC-17](UC-17-unlock-achievement.md)).
+7. The System updates progress on daily quests ([UC-13](UC-13-complete-daily-quests.md)).
 8. The System saves today's rewarded totals and shows the new rewards ([UC-06](UC-06-view-new-rewards.md)).
 
 ## Alternate / Exception Flows
@@ -96,7 +96,7 @@ flowchart TD
         TOMO --> LVL{"Bond crosses a level threshold?"}
         LVL -- Yes --> UPL["Raise Bond Level"] --> CREDIT
         LVL -- No --> CREDIT["Credit TomoCoins to the balance"]
-        CREDIT --> PROG["Update quests (UC-13) and achievements (UC-17)"]
+        CREDIT --> PROG["Update quests (UC-13)"]
         PROG --> SAVE["Save today's rewarded totals"] --> OUT["Return today's totals and new rewards"]
     end
     SYNC --> DIST

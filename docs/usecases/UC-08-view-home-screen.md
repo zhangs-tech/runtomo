@@ -69,7 +69,7 @@ sequenceDiagram
     A->>A: Read today's steps from Health Connect (UC-03)
     A->>S: GET /home
     alt Online
-        S->>S: Create today's quests if missing (UC-13)
+        S->>S: Claim completed quests from earlier days (UC-13 4a)
         S->>S: Pick the mood (UC-10)
         S-->>A: Tomo, mood, today's steps and km, daily goal, stride, balance, quests, last sync date
         A->>A: Cache the response

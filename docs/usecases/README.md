@@ -4,7 +4,7 @@ These are the use cases for the RunTomo MVP. They describe the core loop:
 
 **Walk / Run → Earn TomoCoins + Bond → Care for Tomo → Summon new Tomos → Keep Moving**
 
-These use cases exclude features outside the MVP on purpose. Those features are GPS run tracking, checks that steps are real, battles, trading, skins, clubs, location sharing, events, habitats and extra currencies. See `RunTomo_Idea.md` §45 for the roadmap.
+These use cases exclude features outside the MVP on purpose. Those features are GPS run tracking, checks that steps are real, battles, trading, skins, achievements, clubs, location sharing, events, habitats and extra currencies. See `RunTomo_Idea.md` §45 for the roadmap.
 
 ## Actors
 
@@ -34,7 +34,6 @@ Actors are people or services outside RunTomo, such as Google for sign-in and He
 | [UC-13](UC-13-complete-daily-quests.md) | Complete Daily Quests | Player | Must |
 | [UC-15](UC-15-add-friend.md) | Add Friend | Player | Should |
 | [UC-16](UC-16-view-friend-leaderboard.md) | View Friend Leaderboard | Player | Should |
-| [UC-17](UC-17-unlock-achievement.md) | Unlock Achievement | Player | Should |
 | [UC-18](UC-18-feed-tomo.md) | Feed Tomo | Player | Should |
 
 **Must** = needed to test the core loop. **Should** = add if time allows.

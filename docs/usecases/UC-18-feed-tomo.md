@@ -37,12 +37,13 @@ The Player taps **Feed** on the Home Screen.
 
 ## Business Rules
 
-- BR-1: MVP food items *(tunable)*:
+- BR-1: MVP food items *(tunable)*. See [docs/foods](../foods/README.md) for each item's description and art.
 
   | Item | Cost | Bond |
   |---|---:|---:|
-  | Snack | 50 TomoCoins | +3 |
-  | Treat | 150 TomoCoins | +10 |
+  | Banana | 50 TomoCoins | +3 |
+  | Onigiri | 100 TomoCoins | +6 |
+  | Bento | 150 TomoCoins | +10 |
 
 - BR-2: The Player can feed each Tomo at most 3 times per day *(tunable)*, so the Player cannot simply trade coins for Bond.
 - BR-3: With the values in BR-1 and BR-2, food gives a Tomo at most 30 Bond per day. Moving gives 10 Bond per km with no daily cap ([UC-05](UC-05-calculate-daily-rewards.md) BR-3), so 3 km of moving matches a full day of food. Movement stays the main way to grow.
@@ -81,7 +82,7 @@ sequenceDiagram
         end
     end
     P->>A: Drag food to the Tomo, or tap Give
-    A->>S: POST /me/tomos/{id}/feed (foodItemId)
+    A->>S: POST /me/tomos/{id}/feed (foodCode)
     alt Already fed 3 times today
         S-->>A: Limit reached, item kept
         A-->>P: Full animation
@@ -94,7 +95,7 @@ sequenceDiagram
 
 ### Technical notes
 
-- Items are `food_items`, stock is `user_food_inventory`, and each feeding is a row in `feedings`. The daily limit (BR-2) counts `feedings` for the Tomo and the UTC+7 `local_date`, using the `feedings_tomo_date` index.
+- Food items (code, cost, Bond) are in the server's game data. Stock is `user_food_inventory` and each feeding is a row in `feedings`, both by `food_code`. The daily limit (BR-2) counts `feedings` for the Tomo and the UTC+7 `local_date`.
 - Buying adds a `coin_transactions` row with reason `food` and updates `users.coin_balance` in the same transaction. The once-per-source unique index excludes `food`, because a Player can buy the same item many times.
 - Using the item, saving the feeding and adding Bond run in one transaction.
 - The app waits for the server before playing step 5, so it never shows eating followed by "full".

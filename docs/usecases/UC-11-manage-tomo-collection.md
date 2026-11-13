@@ -40,15 +40,12 @@ The Player opens the **Tomos** tab.
 
 - BR-1: Exactly one Tomo is equipped at any time.
 - BR-2: Each Tomo keeps its own Bond and Distance Together. Switching Tomos does not move progress from one to another.
+- BR-3: A Player owns at most one Tomo of each species. A summoned duplicate converts to TomoCoins ([UC-12](UC-12-summon-tomo.md) BR-4).
 
 ## Related
 
 - [UC-02 Choose Starter Tomo](UC-02-choose-starter-tomo.md)
 - [UC-12 Summon Tomo](UC-12-summon-tomo.md)
-
-## Open Questions
-
-- Can a Player own more than one Tomo of the same species, or do duplicates always convert ([UC-12](UC-12-summon-tomo.md) BR-4)?
 
 ## Diagrams
 
@@ -80,7 +77,8 @@ sequenceDiagram
 
 ### Technical notes
 
-- The roster is every row in `species`. The response marks which species the Player owns.
+- The roster is every species in the server's game data. The response marks which species the Player owns.
+- `user_tomos` is unique on `(user_id, species_code)`, so the database refuses a second Tomo of the same species (BR-3).
 - `users.equipped_tomo_id` has a foreign key to `user_tomos (id, user_id)`, so the database refuses a Tomo the Player does not own.
 - The newly equipped Tomo gets Bond and Distance Together from the next sync onward ([UC-05](UC-05-calculate-daily-rewards.md) BR-6).
-- Species and skins are in separate tables (`species`, `skins`, `user_tomos.skin_id`), so a later version can add skins. The MVP uses only each species' default skin.
+- Skins are not in the MVP. Each Tomo looks like its species. A later version can add a `skins` table and a `user_tomos.skin_id` column.

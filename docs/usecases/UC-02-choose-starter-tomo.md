@@ -77,7 +77,7 @@ sequenceDiagram
         S-->>A: 409
         A-->>P: Home Screen
     else Request is valid
-        S->>S: Create Tomo with the default skin, set it as equipped
+        S->>S: Create Tomo, set it as equipped
         S-->>A: New Tomo
         A-->>P: Hello animation, then Home Screen
     end
@@ -85,7 +85,7 @@ sequenceDiagram
 
 ### Technical notes
 
-- Starter species are the rows in `species` with `is_starter = true`.
-- The server creates the `user_tomos` row with the species' default skin (`skins.is_default`), then sets `users.equipped_tomo_id`, in one transaction.
+- Starter species are the species marked as starters in the server's game data.
+- The server creates the `user_tomos` row, then sets `users.equipped_tomo_id`, in one transaction.
 - The server rejects a starter request from a Player who already owns a Tomo. A retry after a lost response therefore cannot create a second starter, and the app treats that `409` as success.
 - The server checks the nickname length again (`user_tomos.nickname` allows 1–16 characters).
