@@ -1,5 +1,6 @@
 package com.zhangs_tech.runtomo.auth
 
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.zhangs_tech.runtomo.MainDispatcherRule
@@ -19,7 +20,7 @@ class WelcomeViewModelTest {
 
     private val identityProvider = FakeIdentityProvider()
     private val authApi = FakeAuthApi()
-    private val authRepository = AuthRepository(authApi, FakeTokenStore(), FakeUserApi())
+    private val authRepository = AuthRepository(authApi, FakeTokenStore(), FakeUserApi(), FakePlayerCache())
     private val viewModel = WelcomeViewModel(identityProvider, authRepository)
 
     private fun signIn() = viewModel.signIn(ApplicationProvider.getApplicationContext())

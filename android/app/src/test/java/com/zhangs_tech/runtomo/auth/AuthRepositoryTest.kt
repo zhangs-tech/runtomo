@@ -1,5 +1,7 @@
 package com.zhangs_tech.runtomo.auth
 
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
+import com.zhangs_tech.runtomo.home.testHome
 import com.zhangs_tech.runtomo.network.ApiException
 import com.zhangs_tech.runtomo.user.FakeUserApi
 import kotlinx.coroutines.test.runTest
@@ -13,7 +15,8 @@ class AuthRepositoryTest {
     private val authApi = FakeAuthApi()
     private val tokenStore = FakeTokenStore()
     private val userApi = FakeUserApi()
-    private val repository = AuthRepository(authApi, tokenStore, userApi)
+    private val playerCache = FakePlayerCache()
+    private val repository = AuthRepository(authApi, tokenStore, userApi, playerCache)
 
     @Test
     fun initialState_isLoading() {
@@ -171,5 +174,15 @@ class AuthRepositoryTest {
 
         assertNull(repository.refreshAccessToken("old-access"))
         assertEquals(stored, tokenStore.tokens)
+    }
+
+    @Test
+    fun signOut_clearsPlayerCache() = runTest {
+        tokenStore.tokens = AuthTokens("a", "r")
+        playerCache.cachedHome = testHome()
+
+        repository.signOut()
+
+        assertNull(playerCache.cachedHome)
     }
 }

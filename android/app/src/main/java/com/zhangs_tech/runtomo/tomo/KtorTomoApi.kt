@@ -16,7 +16,7 @@ class KtorTomoApi @Inject constructor(
     @AuthenticatedClient private val httpClient: HttpClient,
 ) : TomoApi {
     override suspend fun getStarters(): List<Species> = apiCall {
-        httpClient.get("species/starters").body<List<SpeciesResponse>>().map { it.toSpecies() }
+        httpClient.get("species/starters").body<List<Species>>()
     }
 
     override suspend fun chooseStarter(speciesCode: String, nickname: String) {
@@ -27,16 +27,6 @@ class KtorTomoApi @Inject constructor(
             }
         }
     }
-}
-
-@Serializable
-internal data class SpeciesResponse(
-    val code: String,
-    val name: String,
-    val rarity: Rarity,
-    val description: String,
-) {
-    fun toSpecies() = Species(code, name, rarity, description)
 }
 
 @Serializable

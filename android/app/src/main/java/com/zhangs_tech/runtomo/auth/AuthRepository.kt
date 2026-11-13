@@ -1,5 +1,6 @@
 package com.zhangs_tech.runtomo.auth
 
+import com.zhangs_tech.runtomo.cache.PlayerCache
 import com.zhangs_tech.runtomo.network.AccessTokenProvider
 import com.zhangs_tech.runtomo.network.ApiException
 import com.zhangs_tech.runtomo.user.UserApi
@@ -16,6 +17,7 @@ class AuthRepository @Inject constructor(
     private val authApi: AuthApi,
     private val tokenStore: TokenStore,
     private val userApi: UserApi,
+    private val playerCache: PlayerCache,
 ) : AccessTokenProvider {
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Loading)
     val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
@@ -47,6 +49,11 @@ class AuthRepository @Inject constructor(
     }
 
     fun onDisplayNameConfirmed() {
+        _sessionState.value = SessionState.NeedsStarterTomo
+    }
+
+    /** The Player has no Tomo, for example after an offline start (UC-02 7a). */
+    fun onStarterTomoMissing() {
         _sessionState.value = SessionState.NeedsStarterTomo
     }
 
@@ -97,6 +104,7 @@ class AuthRepository @Inject constructor(
 
     private suspend fun endSession() {
         tokenStore.clear()
+        playerCache.clear()
         _sessionState.value = SessionState.SignedOut
     }
 }

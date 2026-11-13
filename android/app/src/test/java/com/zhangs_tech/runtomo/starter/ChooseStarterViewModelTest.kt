@@ -1,5 +1,6 @@
 package com.zhangs_tech.runtomo.starter
 
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.MainDispatcherRule
 import com.zhangs_tech.runtomo.auth.AuthRepository
 import com.zhangs_tech.runtomo.auth.FakeAuthApi
@@ -21,7 +22,7 @@ class ChooseStarterViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val tomoApi = FakeTomoApi()
-    private val authRepository = AuthRepository(FakeAuthApi(), FakeTokenStore(), FakeUserApi())
+    private val authRepository = AuthRepository(FakeAuthApi(), FakeTokenStore(), FakeUserApi(), FakePlayerCache())
     private val viewModel by lazy { ChooseStarterViewModel(tomoApi, authRepository) }
     private val luppy get() = tomoApi.starters[0]
 

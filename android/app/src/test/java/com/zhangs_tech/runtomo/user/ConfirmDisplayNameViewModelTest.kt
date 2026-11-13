@@ -1,5 +1,6 @@
 package com.zhangs_tech.runtomo.user
 
+import com.zhangs_tech.runtomo.cache.FakePlayerCache
 import com.zhangs_tech.runtomo.MainDispatcherRule
 import com.zhangs_tech.runtomo.auth.AuthRepository
 import com.zhangs_tech.runtomo.auth.FakeAuthApi
@@ -17,7 +18,7 @@ class ConfirmDisplayNameViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val userApi = FakeUserApi()
-    private val authRepository = AuthRepository(FakeAuthApi(), FakeTokenStore(), userApi)
+    private val authRepository = AuthRepository(FakeAuthApi(), FakeTokenStore(), userApi, FakePlayerCache())
     private val viewModel by lazy { ConfirmDisplayNameViewModel(userApi, authRepository) }
 
     @Test

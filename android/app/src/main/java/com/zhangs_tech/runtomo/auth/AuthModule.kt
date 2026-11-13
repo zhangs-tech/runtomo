@@ -30,6 +30,7 @@ abstract class AuthModule {
     companion object {
         @Provides
         @Singleton
+        @TokenDataStore
         fun provideAuthDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
             PreferenceDataStoreFactory.create {
                 context.preferencesDataStoreFile(DataStoreTokenStore.FILE_NAME)

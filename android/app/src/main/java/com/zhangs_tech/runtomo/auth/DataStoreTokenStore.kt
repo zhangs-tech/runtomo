@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class DataStoreTokenStore @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
+    @TokenDataStore private val dataStore: DataStore<Preferences>,
 ) : TokenStore {
 
     override suspend fun read(): AuthTokens? {
