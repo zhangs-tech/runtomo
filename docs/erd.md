@@ -3,7 +3,7 @@
 Derived from the [use cases](usecases/).
 
 - The database stores only player data. Game data is in resource files in the server (`server/src/main/resources/game/`): species, banners and their species weights, the daily quest list, food items, and tunable values such as Bond Level thresholds, reward tiers, caps and stride.
-- Player rows refer to game data by code (`species_code`, `banner_code`, `quest_code`, `food_code`). A code is permanent: never rename or delete one. To retire a species or item, take it out of banners or the shop. At startup the server checks that every code in the database exists in the game data.
+- Player rows refer to game data by code (`species_code`, `banner_code`, `quest_code`, `food_code`). A code is permanent: never rename or delete one. To retire a species or item, take it out of banners or the shop.
 - Computed, not stored: mood ([UC-10](usecases/UC-10-update-tomo-mood.md)), leaderboards ([UC-16](usecases/UC-16-view-friend-leaderboard.md), from DAILY_STATS) and quest progress ([UC-13](usecases/UC-13-complete-daily-quests.md), from DAILY_STATS).
 - Every `local_date` is a UTC+7 day ([README](usecases/README.md), Days).
 
